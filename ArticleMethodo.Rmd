@@ -444,11 +444,15 @@ nuage_corpus <- Corpus(VectorSource(revues_shs_alzheimer$title_s))
 
 nuage_corpus_clean<-tm_map(nuage_corpus,tolower)
 nuage_corpus_clean<-tm_map(nuage_corpus_clean,removeNumbers)
-nuage_corpus_clean<-tm_map(nuage_corpus_clean,removeWords,stopwords("english")) nuage_corpus_clean<-tm_map(nuage_corpus_clean,removeWords,stopwords("fr")) nuage_corpus_clean<-tm_map(nuage_corpus_clean,removeWords,"alzheimer") 
+nuage_corpus_clean<-tm_map(nuage_corpus_clean,removeWords,stopwords("english"))
+nuage_corpus_clean<-tm_map(nuage_corpus_clean,removeWords,stopwords("fr"))
+nuage_corpus_clean<-tm_map(nuage_corpus_clean,removeWords, c("alzheimer", "maladie", "disease"))
+nuage_corpus_clean <- tm_map(nuage_corpus_clean, content_transformer(function(x) gsub("[[:punct:]]", "", x)))
 nuage_corpus_clean<-tm_map(nuage_corpus_clean,removePunctuation)
 nuage_corpus_clean<-tm_map(nuage_corpus_clean,stripWhitespace)
 
-wordcloud(nuage_corpus_clean,max.words = 100, min.freq =1, colors = brewer.pal(8, "Dark2"), rot.per=0.35)
+wordcloud(nuage_corpus_clean,max.words = 100, min.freq =1, colors = viridis_pal()(6), rot.per=0.35)
+
 ```
 
 ### Analyse 4 - Tendances de publications
