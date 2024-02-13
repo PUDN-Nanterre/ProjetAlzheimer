@@ -258,14 +258,13 @@ Convertir publicationDateY_i en type numérique (nous allons supprimer les donn�
 dataset_alzheimer$publicationDateY_i <- as.numeric(trimws(dataset_alzheimer$publicationDateY_i))
 ```
 
-Filtrer le jeu de données pour inclure uniquement les lignes où docType_s est "ISSUE" ou "ART" et où la colonne journalTitle_s contient les mots "Revue", "revue", "review" ou "Review" et où publicationDateY_i n'est pas égal à 2024
+Filtrer le jeu de données pour inclure uniquement les lignes où docType_s est "ISSUE" ou "ART" et où la colonne journalTitle_s contient les mots "Revue", "revue", "review" ou "Review"
 
 ```{r, include=FALSE}
 revues_shs_alzheimer <- dataset_alzheimer %>%
   filter(
-    docType_s %in% c("ISSUE", "ART") &
-      str_detect(tolower(journalTitle_s), "revue|review") &
-      publicationDateY_i != 2024
+    docType_s %in% c("ISSUE", "ART") |
+      str_detect(tolower(journalTitle_s), "revue|review")
   )
 ```
 
@@ -276,14 +275,13 @@ Filtrer le jeu de données pour inclure uniquement les lignes où docType_s est 
 ```{r, include=FALSE}
 revues_shs_alzheimer <- revues_shs_alzheimer %>%
   filter(
-    str_detect(tolower(domain_s), "shs|ssh") &
-      str_detect(tolower(primaryDomain_s), "shs|ssh") &
-      publicationDateY_i != 2024
+    str_detect(tolower(domain_s), "shs|ssh") |
+      str_detect(tolower(primaryDomain_s), "shs|ssh")
   )
 
 ```
 
-Nous avons donc 47 publications de revues.
+Nous avons donc 393 publications de revues.
 
 Nettoyage des données liées à la langue :
 
@@ -417,8 +415,7 @@ library(igraph)
 ```{r, include=FALSE}
 view(revues_shs_alzheimer)
 
-revues_shs_auteur <- revues_shs_alzheimer 
-  %\>% select(1:14,26) 
+revues_shs_auteur <- revues_shs_alzheimer %>% select(1:14,26) 
 
 skim(revues_shs_auteur) 
 
@@ -469,7 +466,13 @@ for(i in 1:length(revues_shs_auteur$ordre)){
   revues_shs_auteur$Auteur[i] <- revues_shs_auteur$AutList[[i]][revues_shs_auteur$ordre[i]]}
 
 view(revues_shs_auteur)
+```
+Créer un nouveau jeu de données pour faire visible la collaboration des auteurs
+```{r, include=FALSE}
+install.packages("data.table")
+library(data.table)
 
+fwrite(revues_shs_auteur, file ="aut_collab.csv",row.names = TRUE)
 ```
 
 auteurs actifs
@@ -479,10 +482,10 @@ aut_actif <- table(revues_shs_auteur$Auteur)
 aut_actif_df <- data.frame(aut = names(aut_actif), frequentation = as.numeric(aut_actif)) 
 top_aut <- aut_actif_df[order(aut_actif_df$frequentation, decreasing = TRUE), ]
 
-top_13 <- head(top_aut, 13)
-view(top_13)
+top_10 <- head(top_aut, 10)
+view(top_10)
 
-ggplot(top_13, aes(x = reorder(aut, -frequentation), y = frequentation)) + 
+ggplot(top_10, aes(x = reorder(aut, -frequentation), y = frequentation)) + 
   geom_bar(stat = "identity", fill = "skyblue") + 
   labs(title = "Top 15 Authors by Frequency", x = "Author", y = "Frequency") + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -490,14 +493,13 @@ ggplot(top_13, aes(x = reorder(aut, -frequentation), y = frequentation)) +
 
 ### Analyse 2 - Réseau de collaboration
 
-2\. Analyse du réseau de collaborations des auteurs des revues SHS: Construction d'un réseau de collaborations entre auteurs, identification des groupes fréquemment actifs.
+2. Analyse du réseau de collaborations des auteurs des revues SHS: Construction d'un réseau de collaborations entre auteurs, identification des groupes fréquemment actifs.
 
-```{r, include=FALSE}
 collaboration (igraph)
-
-aut_collab <- revues_shs_auteur %\>% 
-  select(docid,Auteur) %\>% 
-  filter(Auteur %in% c("Christelle Hureau", "Didier Le Gall", "Francis Eustache","Gaël Chételat","Béatrice Desgranges", "Bruno Vincent","Christophe Jarry","François Osiurak","Josselin Baumard","Mathieu Lesourd","Mohamad El Haj","Peter Faller","Thierry Dantoine"))
+```{r, include=FALSE}
+aut_collab <- revues_shs_auteur %>% 
+  select(docid,Auteur) %>% 
+  filter(Auteur %in% c("Mohamad El Haj","Philippe Allain","Cédric Annweiler","Jean-Pierre Jacus","Karim Gallouj","Olivier Beauchet","Pascal Antoine","Fabrice Gzil","Ahmed Moustafa","Marie-Christine Gély-Nargeot"))
 
 aut_collab_graph <- graph_from_data_frame(aut_collab, directed = FALSE)
 ```
@@ -675,7 +677,7 @@ top_institutions <- revues_shs_alzheimer %>%
 Ce choix de seulement sept (07) éditeurs s'explique par le fait que le reste des éditeurs ont publié seulement une publication. Nous avons donc choisi de prendre seulement ceux qui ont publié plus de deux fois sur la maladie en question :
 
 ```{r, include=FALSE}
-gplot(top_institutions, aes(x = n, y = fct_reorder(journalPublisher_s, n))) +
+ggplot(top_institutions, aes(x = n, y = fct_reorder(journalPublisher_s, n))) +
   geom_bar(stat = "identity", fill = "#0073C2FF") +  # Créer un graphique à barres
   labs(
     title = "Institutions les plus actives dans les revues SHS sur la maladie d'Alzheimer",
