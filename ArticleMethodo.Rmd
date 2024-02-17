@@ -3,9 +3,9 @@ title: "Alzheimer_PUDN"
 author: "Remaissa BENDIB, Hanjoon KO, Gracia YAN"
 date: "`r Sys.Date()`"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 # Introduction
@@ -207,21 +207,23 @@ save(dataset_alzheimer, file = "AlzheimerHAL.Rda")
 
 ## Préparation des dataset avant de faire des analyses
 
--   Étape 1 : Préparation du dataset général
+-   [Étape 1 :]{.underline} Préparation du dataset général
 
 Dans cette étape, nous procéderons à la préparation du dataset général pour faire des visualisations sur les tendances générales.
 
--   Étape 2 : Création d'un sub-dataset spécialisé pour les revues
+-   [Étape 2 :]{.underline} Création d'un sub-dataset spécialisé pour les revues
 
 Dans cette étape, nous créerons un sub-dataset spécifique qui se concentre exclusivement sur les publications de type "revues". Cela permettra une analyse plus approfondie et ciblée sur ce sous-ensemble de données, facilitant ainsi l'extraction d'informations spécifiques liées aux revues.
 
+-   [Etape 3]{.underline} : Enrichissement manuelle des données liées aux types de revues (cette étape viendra dans les analyses, car nous allons seulement enrichir le top20 des revues)
+
 ### Étape 1
 
-Préparation du dataset général : Création d'un sous-ensemble de données "dataset_shs_alzheimer"
+Préparation du dataset général :
 
-Utilisation de l'opérateur de pipe (%\>%) pour chaîner des opérations avec dplyr
+A partir du dataset initial, nous allons créer un sous-ensemble de données que nous allons appeler dataset_shs_alzheimer.
 
-Filtrage des lignes basé sur des conditions spécifiques Utilisation de str_detect pour rechercher le motif "shs" ou "ssh" dans la colonne domain_s \# ou la colonne primaryDomain_s, avec la conversion en minuscules pour rendre la recherche insensible à la casse
+Notre filtrage des lignes est basé sur des conditions spécifiques : la fonction str_detect nous permettra de rechercher le motif "shs" ou "ssh" dans la colonne domain_s ou la colonne primaryDomain_s, avec la conversion en minuscules pour rendre la recherche insensible à la casse.
 
 ```{r, include=FALSE}
 
@@ -237,6 +239,43 @@ dataset_shs_alzheimer <- dataset_alzheimer %>%
 
 ```
 
+Toujours dans l'optique de nettoyer nos données, vu que nous avons plusieurs types de publications, nous allons rassembler certaines avec d'autres.\
+
+Nous allons donc agréger nos données liées aux types de publications.
+
+Les principales modifications incluent :
+
+-   Regrouper "ISSUE" avec "ART" dans la catégorie "Article dans une revue".
+
+-   Regrouper "PROCEEDINGS" avec "COMM" dans la catégorie "Communication dans un congrès".
+
+-   Regrouper "HDR" avec "THESE".
+
+-   Regrouper "UNDEFINED" avec d'autres catégories d'"Autre publication scientifique".
+
+-   Regrouper "COUV" avec "Ouvrages".
+
+```{r, include=FALSE}
+
+# Agréger les données dans la colonne docType_s
+dataset_shs_alzheimer <- dataset_shs_alzheimer %>%
+  mutate(docType_s = case_when(
+    docType_s %in% c("ART", "ISSUE") ~ "Article dans une revue",
+    docType_s %in% c("BLOG") ~ "Article de blog scientifique",
+    docType_s %in% c("COMM", "PROCEEDINGS") ~ "Communication dans un congrès",
+    docType_s %in% c("LECTURE") ~ "Cours",
+    docType_s %in% c("OTHER", "VIDEO", "TRAD", "UNDEFINED") ~ "Autre publication scientifique",
+    docType_s %in% c("OUV", "COUV") ~ "Ouvrages",
+    docType_s %in% c("PATENT") ~ "Brevet",
+    docType_s %in% c("POSTER") ~ "Poster de conférence",
+    docType_s %in% c("REPORT") ~ "Rapport",
+    docType_s %in% c("THESE", "HDR") ~ "Thèse",
+    TRUE ~ as.character(docType_s)  
+  ))
+
+
+```
+
 ### Étape 2
 
 Création d'un dataset pour analyser les données liées aux revues
@@ -244,71 +283,78 @@ Création d'un dataset pour analyser les données liées aux revues
 Affichage des données liées aux types de documents
 
 ```{r, include=FALSE}
+
 unique_doctype <- unique(dataset_alzheimer$docType_s) 
 print(unique_doctype)
 ```
 
-Vu que nous souhaitons nous concentrer sur les revues SHS, nous allons donc créer un nouveau dataset qui prend seulement les données liées aux revues : ART(Article dans une revue) et ISSUE (N°spécial de revue/special issue)
+Vu que nous souhaitons nous concentrer sur les revues SHS, nous allons donc créer un nouveau dataset qui prend seulement les données liées aux revues.
 
-Filtrer le jeu de données pour inclure uniquement les lignes où docType_s est "ISSUE" ou "ART" et où la colonne journalTitle_s contient les mots "Revue", "revue", "review" ou "Review" car il se peut que quelques revues ne soient pas indiquées comme étant des revues dans le type du document (undefined)
-
-Convertir publicationDateY_i en type numérique (nous allons supprimer les données de 2024 car nous souhaitons arrêter avant le 1er janvier 2024)
-
-```{r, include=FALSE}
-dataset_alzheimer$publicationDateY_i <- as.numeric(trimws(dataset_alzheimer$publicationDateY_i))
-```
+Nous allons tout d'abord filtrer le jeu de données shs pour inclure uniquement les lignes où docType_s est "Article dans une revue" et où la colonne journalTitle_s contient les mots "Revue", "revue", "review" ou "Review" car il se peut que quelques revues ne soient pas indiquées comme étant des revues dans le type du document (undefined)
 
 Filtrer le jeu de données pour inclure uniquement les lignes où docType_s est "ISSUE" ou "ART" et où la colonne journalTitle_s contient les mots "Revue", "revue", "review" ou "Review"
 
 ```{r, include=FALSE}
-revues_shs_alzheimer <- dataset_alzheimer %>%
+revues_shs_alzheimer <- dataset_shs_alzheimer %>%
   filter(
-    docType_s %in% c("ISSUE", "ART") |
+    docType_s %in% c("Article dans une revue") |
       str_detect(tolower(journalTitle_s), "revue|review")
   )
 ```
 
-Nous allons encore nettoyer notre jeu de données, en nous concentrant plutôt sur les revues SHS.
+Nous avons donc 394 publications de revues.
 
-Filtrer le jeu de données pour inclure uniquement les lignes où docType_s est "ISSUE" ou "ART" et où domain_s et primaryDomain_s contiennent le mot "shs"
+**Nettoyage des données liées à la langue :**
+
+Pour nettoyer nos données de langue, nous allons tout d'abord les afficher :
 
 ```{r, include=FALSE}
-revues_shs_alzheimer <- revues_shs_alzheimer %>%
-  filter(
-    str_detect(tolower(domain_s), "shs|ssh") |
-      str_detect(tolower(primaryDomain_s), "shs|ssh")
-  )
+
+# Créer une table des occurrences de chaque langue
+language_counts <- table(revues_shs_alzheimer$language_s)
+
+# Afficher la table
+print(language_counts)
+
 
 ```
 
-Nous avons donc 393 publications de revues.
+Pour nettoyer notre colonne de langue, nous allons utiliser la librarie textcat. Cette librairie basé sur des modèles NLP pré-entrainés permet la détection automatique de la langue d'un texte. Il s'agit plus précisemment d'un N_gramm de la base de donnés pour 26 langues basé sur le corpus miltilingue de l'initiative Corpus Européen (<https://cran.r-project.org/web/packages/textcat/textcat.pdf>)
 
-Nettoyage des données liées à la langue :
+Nous avons choisi de détecter la langue de la colonne title_s
 
-Nous allons tout d'abord créer une nouvelle colonne de vérification de langue
+```{r}
 
-Nous allons sélectionner les mots les plus utilisés dans les titres francophones et anglophones pour filtrer et extraire la langue des publications
+library(textcat)
 
-```{r, include=FALSE}
-revues_shs_alzheimer <- revues_shs_alzheimer %>%
-  mutate(language_title = ifelse(
-    grepl("\\b(?:an|and|as|by|for|in|is|of|on|the|to|with)\\b", title_s, ignore.case = TRUE),
-    "en",
-    ifelse(
-      grepl("\\b(?:le|la|et|a-t-il|a-t-elle)\\b", title_s, ignore.case = TRUE),
-      "fr",
-      NA
-    )
-  ))
+revues_shs_alzheimer$language_verification <- sapply(revues_shs_alzheimer$title_s, textcat)
+
+# Afficher le dataframe avec la colonne language_verification
+print(revues_shs_alzheimer)
+
+```
+
+Une colonne language_verification a été donc créé. Sauf que la libraire affiche le résultat comme étant : soit : french pour français, soit english pour anglais. Vu que nous souhaitons comparer nos résultats à ceux déjà saisis sur HAL, nous devons modifier l'output :
+
+```{r}
+
+# Modifier les valeurs en "fr" ou "en" en fonction de la langue détectée
+revues_shs_alzheimer$language_verification <- ifelse(revues_shs_alzheimer$language_verification == "french", "fr",
+                                                     ifelse(revues_shs_alzheimer$language_verification == "english", "en", NA))
+
 ```
 
 Nous allons comparer ces données à celles déjà saisies sur HAL (donc language_s)
 
-Filtrer les lignes où language_title n'est pas égal à language_s
+Filtrer les lignes où language_verification n'est pas égal à language_s
 
 ```{r, include=FALSE}
+
 lignes_langue_différente <- revues_shs_alzheimer %>%
-  filter(language_title != language_s)
+  mutate(language_verification = as.character(language_verification),
+         language_s = as.character(language_s)) %>%
+  filter(language_verification != language_s)
+
 ```
 
 Afficher les lignes
@@ -317,86 +363,38 @@ Afficher les lignes
 print(lignes_langue_différente)
 ```
 
-Maintenant que nous avons les lignes qui ne correspondent pas, nous allons vérifier manuellement
+Maintenant que nous avons les lignes qui ne correspondent pas, nous allons vérifier manuellement si c'est le cas ou non, puis nous allons corriger les incohérences.
 
 Nettoyer les données liées à la langue à partir de l'identifiant docid
 
 ```{r, include=FALSE}
+
 revues_shs_alzheimer <- revues_shs_alzheimer %>%
   mutate(language_s = case_when(
-    docid %in% c(3158921, 1584518, 1240621, 1806639) ~ "fr",
+    docid %in% c(1806639, 1240621, 984498, 1240619, 4375787, 3355729, 4457542, 4380879, 3524754,
+                 4047932, 4391680, 2440803, 4201490, 1584518, 3817981, 4330838, 3730267, 4331180,
+                 4375866, 3730264, 3497539, 3730263, 4334832, 3726046, 3643277, 4226480, 4334932,
+                 4375647) ~ "fr",
     TRUE ~ language_s
   ))
 
 ```
 
-Après avoir observé quelques incohérences dans les lignes concernant les éditeurs, nous allons mettre à jour la colonne journalPublisher_s :
+Il y a également une incohérence dans les lignes concernant les éditeurs, nous allons mettre à jour la colonne journalPublisher_s :
 
 ```{r, include=FALSE}
 revues_shs_alzheimer <- revues_shs_alzheimer %>%   
   mutate(     journalPublisher_s = if_else(journalPublisher_s == "Elsevier", "Elsevier Masson", journalPublisher_s)   )
 ```
 
-Nous allons également enrichir nos données en incluant les répartitions géographiques des éditeurs. Après avoir effectué des recherches sur Internet, nous avons identifié la localisation de chaque éditeur :
+Nous allons remplir les lignes vides dans journalPublisher_s par des NA pour pouvoir retirer les NA lors de nos analyses :
 
-```{r, include=FALSE}
-# Définir la correspondance entre les éditeurs et leur localisation géographique
-localisation_mapping <- c(
-  "Elsevier Masson" = "Paris (France)",
-  "Sirey ; Dalloz [1980-....]" = "Paris (France)",
-  "Association française de musicothérapie" = "Paris (France)",
-  "SER" = "Paris (France)",
-  "MF" = "Paris (France)",
-  "Cambridge University Press (CUP)" = "Cambridge (Royaume-Uni)",
-  "Adrsc" = "Marseille (France)",
-  "Association pour la Recherche en Education (ARED)" = "Villeneuve-d'Ascq (France)",
-  "Association pour la connaissance de l'Allemagne d'aujourd'hui (ACAA) / Presses Universitaires du Septentrion" = "Paris (France)",
-  "Dalhousie University. Department of French" = "Nova Scotia (Canada)",
-  "De Boeck Supérieur" = "Louvain-la-Neuve (Belgique)",
-  "Dilecta" = "Paris (France)",
-  "ENS Éditions" = "Lyon (France)",
-  "Editions Esprit" = "Paris (France)",
-  "Editions érès" = "Toulouse (France)",
-  "ILCEA / ELLUG" = "Grenoble (France)",
-  "Interrogations" = "Paris (France)",
-  "Les Études hospitalières éditions (LEH)" = "Bordeaux (France)",
-  "Paris : Fédération hospitalière de France" = "Paris (France)",
-  "Paris : Publications linguistiques" = "Paris (France)",
-  "Presses de Sciences Po / Centre National de la Recherche Scientifique" = "Paris (France)",
-  "Presses universitaires de Louvain (Louvain-la-Neuve, Belgique) [2008-....]" = "Louvain-la-Neuve (Belgique)",
-  "Société d'études économiques et sociales — SEES" = "Lausanne (Suisse)",
-  "SpringerOpen" = "London (Royaume-Uni)",
-  "Université Toulouse 1 Capitole, Département des Langues et Civilisations" = "Toulouse (France)",
-  "Université de Sherbrooke" = "Québec (Canada)",
-  "École doctorale 519 « Sciences humaines et sociales – Perspectives européennes » - Presses Université de Strasbourg" = "Strasbourg (France)"
-)
+```{r}
+revues_shs_alzheimer$journalPublisher_s <- replace(revues_shs_alzheimer$journalPublisher_s, revues_shs_alzheimer$journalPublisher_s == "", NA)
 
-```
-
-Nous allons ajouter une colonne de localisation géographique à revues_shs_alzheimer :
-
-```{r, include=FALSE}
-revues_shs_alzheimer <- revues_shs_alzheimer %>%
-  mutate(localisation_geographique_editeur = localisation_mapping[as.character(journalPublisher_s)])
-
-```
-
-Nous allons également créer une nouvelle colonne pays_editeur :
-
-```{r, include=FALSE}
-
-revues_shs_alzheimer <- revues_shs_alzheimer %>%
-  mutate(
-    pays_editeur = str_extract(localisation_geographique_editeur, "\\((.*?)\\)")
-  )
-
-# Supprimer les parenthèses de la colonne pays_editeur
-revues_shs_alzheimer <- revues_shs_alzheimer %>%
-  mutate(
-    pays_editeur = str_remove_all(pays_editeur, "[()]")
-  )
-
-
+# Créer et afficher la table des occurrences
+table_journal_publisher <- table(revues_shs_alzheimer$journalPublisher_s)
+print(table_journal_publisher)
 ```
 
 # Analyse pour répondre à nos questions
@@ -467,7 +465,9 @@ for(i in 1:length(revues_shs_auteur$ordre)){
 
 view(revues_shs_auteur)
 ```
+
 Créer un nouveau jeu de données pour faire visible la collaboration des auteurs
+
 ```{r, include=FALSE}
 install.packages("data.table")
 library(data.table)
@@ -493,9 +493,10 @@ ggplot(top_10, aes(x = reorder(aut, -frequentation), y = frequentation)) +
 
 ### Analyse 2 - Réseau de collaboration
 
-2. Analyse du réseau de collaborations des auteurs des revues SHS: Construction d'un réseau de collaborations entre auteurs, identification des groupes fréquemment actifs.
+2.  Analyse du réseau de collaborations des auteurs des revues SHS: Construction d'un réseau de collaborations entre auteurs, identification des groupes fréquemment actifs.
 
 collaboration (igraph)
+
 ```{r, include=FALSE}
 aut_collab <- revues_shs_auteur %>% 
   select(docid,Auteur) %>% 
@@ -567,32 +568,7 @@ library(viridis)
 
 Analyse des données :
 
-Nous allons tout d'abord renommer les valeurs dans la colonne docType_s du dataset
-
-Nous allons créer un tableau ou un data frame de résumé
-
-```{r, include=FALSE}
-dataset_shs_alzheimer <- dataset_shs_alzheimer %>%
-  mutate(docType_s = case_when(
-    docType_s == "ART" ~ "Article dans une revue",
-    docType_s == "BLOG" ~ "Article de blog scientifique",
-    docType_s == "COMM" ~ "Communication dans un congrès",
-    docType_s == "COUV" ~ "Chapitre d'ouvrage",
-    docType_s == "ISSUE" ~ "N°spécial de revue/special issue",
-    docType_s == "LECTURE" ~ "Cours",
-    docType_s == "OTHER" ~ "Autre publication scientifique",
-    docType_s == "OUV" ~ "Ouvrages",
-    docType_s == "PATENT" ~ "Brevet",
-    docType_s == "POSTER" ~ "Poster de conférence",
-    docType_s == "REPORT" ~ "Rapport",
-    docType_s == "THESE" ~ "Thèse",
-    docType_s == "VIDEO" ~ "Vidéo",
-    TRUE ~ as.character(docType_s)  # Pour toutes les autres valeurs, laissez inchangé
-  ))
-
-```
-
-Nous allons maintenant calculer le nombre de publications pour chaque année et type de document en créant un data frame de résumé
+Nous allons calculer le nombre de publications pour chaque année et type de document en créant un data frame de résumé
 
 ```{r, include=FALSE}
 tendances_publication <- dataset_shs_alzheimer %>%
@@ -605,22 +581,29 @@ tendances_publication <- dataset_shs_alzheimer %>%
 Visualisation des données avec la palette de couleurs viridis :
 
 ```{r, include=FALSE}
-ggplot(tendances_publication, aes(x = publicationDateY_i, y = count, color = docType_s)) +
-  geom_line(size = 1) +  # Ajuster l'épaisseur de la ligne selon vos préférences
-  scale_color_viridis_d() +  # Utiliser la palette de couleurs viridis
+ggplot(tendances_publication, aes(x = publicationDateY_i, y = count, fill = docType_s)) +
+  geom_bar(stat = "identity", position = "stack", width = 0.7, color = "black") +
+  scale_fill_brewer(palette = "Dark2") +
   labs(
     title = "Tendances des publications SHS sur la maladie d'Alzheimer au fil des années",
     x = "Année de publication",
     y = "Nombre de publications",
-    color = "Type de document"
-  ) +  # Ajouter des étiquettes au titre et aux axes
-  theme_minimal() +  # Utiliser un thème minimal pour un aspect propre
+    fill = "Type de document"
+  ) +
+  theme_minimal() +
   scale_x_continuous(breaks = unique(tendances_publication$publicationDateY_i), labels = unique(tendances_publication$publicationDateY_i))
-# Ajuster les étiquettes de l'axe des x en fonction des valeurs uniques dans la variable publicationDateY_i
 
 ```
 
-[Commentaire perso : ***Supprimer proceedings/hdr/trad ?***]{.underline}
+Analyse :
+
+-   En 1998, les publications exclusivement dédiées à la maladie d'Alzheimer dans le domaine des SHS étaient toutes des ouvrages.
+
+-   À partir de 2001, chaque année (à l'exception de 2004), des articles portant sur la maladie d'Alzheimer dans le domaine des SHS ont été publiés dans des revues.
+
+-   L'année 2017 a enregistré un pic dans le nombre de publications dédiées à la maladie d'Alzheimer dans le domaine des SHS.
+
+-   En 2023, il y a eu une augmentation significative du nombre d'ouvrages publiés par rapport aux années précédentes dans le domaine des SHS traitant de la maladie d'Alzheimer.
 
 ### Analyse 5 - Analyse de la répartition des publications SHS
 
@@ -642,141 +625,162 @@ count_data <- dataset_shs_alzheimer %>%
 Nous allons créer un camembert avec des étiquettes de pourcentage à l'extérieur et des flèches :
 
 ```{r, include=FALSE}
-mycols <- c("#0073C2FF", "#0073C2CF", "#EFC000FF", "#868686FF", "#CD534CFF", "#CAB2D6FF", "#D0D0D0FF", "#CAAEFF", "#EDBB43FF", "#7B848EFF", "#7D85B1FF", "#5B5B5BFF", "#D35E60FF", "#54A4A4FF")
+
 ggplot(count_data, aes(x = "", y = n, fill = docType_s)) +
   geom_bar(width = 1, stat = "identity", color = "white") +
   
-  # Utiliser geom_label_repel pour positionner les étiquettes de pourcentage à l'extérieur avec des flèches
   geom_label_repel(aes(
-    label = scales::percent(percentage / 100),  # Transformer les pourcentages en texte
+    label = scales::percent(percentage / 100),
     fill = docType_s
   ),
-  position = position_stack(vjust = 0.5),  # Positionner les étiquettes
-  box.padding = 0.5,  # Ajuster la marge autour des étiquettes
-  point.padding = 0.3,  # Ajuster l'espace entre les étiquettes et les flèches
-  arrow = arrow(length = unit(0.02, 'npc')),  # Ajouter des flèches
-  show.legend = FALSE) +  # Ne pas afficher la légende
+  position = position_stack(vjust = 0.5),
+  box.padding = 0.5,
+  point.padding = 0.3,
+  arrow = arrow(length = unit(0.02, 'npc')),
+  show.legend = FALSE) +
   
-  coord_polar("y", start = 0) +  # Utiliser des coordonnées polaires pour le camembert
-  scale_fill_manual(values = mycols) +  # Définir les couleurs manuellement
-  theme_void() +  # Utiliser un thème void pour un fond blanc
-  theme(axis.text = element_blank()) +  # Supprimer les étiquettes des axes
-  labs(title = "Répartition des types de publications sur la maladie d'Alzheimer")  # Ajouter un titre
+  coord_polar("y", start = 0) +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_void() +
+  theme(axis.text = element_blank()) +
+  labs(title = "Répartition des types de publications sur la maladie d'Alzheimer",
+       fill = "Type de publication")
+
 ```
 
-### Analyse 6 - Analyse des institutions les plus actives
+Analyse :
+
+-   La catégorie la plus prédominante est "Article dans une revue", représentant environ 47.24% de l'ensemble des types de documents.
+
+-   "Communication dans un congrès" représente une part significative, soit environ 19.78% de l'ensemble.
+
+-   Les "Ouvrages" représentent environ 14.51% de l'ensemble, contribuant de manière notable.
+
+-   Environ 10.19% des types de documents sont classés comme "Thèse", une part significative mais inférieure à d'autres catégories.
+
+-   Les "Poster de conférence" constituent une part relativement faible, soit environ 2.99%.
+
+-   La catégorie "Rapport" représente environ 2.28% de l'ensemble, une part modérée.
+
+-   Environ 2.99% des types de documents sont classés comme "Autre publication scientifique".
+
+### Analyse 6 - Les institutions les plus actives dans la publications des articles des revues SHS
+
+Nous allons supprimer les NA dans journalPublisher_s. Il faut les supprimer dans cette étape et non pas lors du nettoyage pour garder les lignes qui servent pour d'autres analyses.
+
+```{r, include=FALSE}
+revues_shs_alzheimer <- revues_shs_alzheimer %>%
+  filter(!is.na(journalPublisher_s))
+```
+
+-   Cette ligne de code utilise la fonction **`filter`** pour exclure les lignes où la colonne **`journalPublisher_s`** a des valeurs **`NA`**. Cela nettoie le dataframe en retirant les observations avec des valeurs manquantes dans la colonne spécifiée.
+
+    Nous allons maintenant sélectionner le top 10 des éditeurs de revue les plus actifs:
 
 ```{r, include=FALSE}
 top_institutions <- revues_shs_alzheimer %>%
-  count(journalPublisher_s) %>%  # Compter le nombre de publications par éditeur de revue
-  arrange(desc(n)) %>%  # Trier par ordre décroissant du nombre de publications
-  head(7)  # Sélectionner les 7 éditeurs de revue les plus actifs
-
+  count(journalPublisher_s) %>%
+  arrange(desc(n)) %>%
+  head(10)
 ```
 
-Ce choix de seulement sept (07) éditeurs s'explique par le fait que le reste des éditeurs ont publié seulement une publication. Nous avons donc choisi de prendre seulement ceux qui ont publié plus de deux fois sur la maladie en question :
+Cette séquence de commandes utilise **`count`** pour compter le nombre d'occurrences de chaque éditeur de revue, puis **`arrange`** pour les trier par ordre décroissant en fonction du nombre de publications (**`n`**). Enfin, **`head(10)`** est utilisé pour sélectionner les 10 éditeurs avec le nb le plus élevé.
+
+Nous allons maintenant créer une visualisation :
 
 ```{r, include=FALSE}
 ggplot(top_institutions, aes(x = n, y = fct_reorder(journalPublisher_s, n))) +
-  geom_bar(stat = "identity", fill = "#0073C2FF") +  # Créer un graphique à barres
+  geom_bar(stat = "identity", fill = "#E6AB02", color = "black") +
   labs(
     title = "Institutions les plus actives dans les revues SHS sur la maladie d'Alzheimer",
     x = "Nombre de publications",
     y = "Institution"
   ) +
-  scale_x_continuous(breaks = seq(0, max(top_institutions$n), by = 1)) +  # Définir des ruptures pour afficher uniquement les valeurs entières sur l'axe X
-  theme_minimal()
-
-```
-
-### 7 - Évolution Temporelle des Publications de l'Éditeur de Revues le Plus Actif dans le Domaine de la Maladie d'Alzheimer : Une Analyse de 'Elsevier Masson :
-
-Comme nous avons pu voir dans la visualisation précédente, Elservier Masson est le premier éditeur dans le top 7.
-
-L'objectif de la visualisation que nous allons créer maintenant est d'examiner comment le nombre de publications de l'institution Elsevier Masson a évolué au fil des années
-
-En choisissant un éditeur parmi les plus actifs, nous pouvons obtenir des informations plus détaillées sur la tendance temporelle de ses contributions dans le domaine de la maladie d'Alzheimer :
-
-```{r, include=FALSE}
-
-# Filtrer les données pour l'institution "Elsevier Masson"
-elsevier_masson_data <- revues_shs_alzheimer %>%
-  filter(journalPublisher_s == "Elsevier Masson")
-
-# Grouper par année et compter le nombre de publications
-elsevier_masson_trends <- elsevier_masson_data %>%
-  group_by(publicationDateY_i) %>%
-  summarise(count = n())
-
-# Créer la visualisation en utilisant un graphique à barres
-ggplot(elsevier_masson_trends, aes(x = publicationDateY_i, y = count)) +
-  geom_bar(stat = "identity", color = "white") +
-  labs(
-    title = "Nombre de publications par an pour Elsevier Masson",
-    x = "Année de publication",
-    y = "Nombre de publications"
-  ) +
-  theme_minimal() +
-  scale_x_continuous(breaks = unique(elsevier_masson_trends$publicationDateY_i))
-```
-
-### 8 - Analyse de la répartition géographique des éditeurs
-
-```{r, include=FALSE}
-
-# Créer une table des éditeurs et de leurs pays
-editeurs_pays <- revues_shs_alzheimer %>%
-  filter(!is.na(pays_editeur)) %>%
-  count(journalPublisher_s, pays_editeur) %>%
-  arrange(pays_editeur)
-
-# Créer la visualisation avec un graphique à barres
-ggplot(editeurs_pays, aes(x = pays_editeur, y = n)) +
-  geom_bar(stat = "identity", fill = "#0073C2FF") +
-  labs(
-    title = "Répartition géographique des éditeurs des revues SHS",
-    x = "Pays",
-    y = "Nombre d'éditeurs"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Filtrer les données pour inclure uniquement celles avec le pays de l'éditeur en France
-publications_france <- revues_shs_alzheimer %>%
-  filter(pays_editeur == "France")
-
-# Créer un graphique de barres avec le nombre de publications comme texte
-ggplot(publications_france, aes(x = localisation_geographique_editeur)) +
-  geom_bar() +
-  geom_text(stat = "count", aes(label = ..count..), vjust = -0.5) +  # Ajouter le texte avec le nombre de publications
-  labs(
-    title = "Répartition du nombre de publications en France par localisation géographique de l'éditeur",
-    x = "Localisation géographique de l'éditeur",
-    y = "Nombre de publications"
-  ) +
+  scale_x_continuous(breaks = seq(0, max(top_institutions$n), by = 7)) +
   theme_minimal()
 ```
 
-### 9 - Analyse de la répartition des langues des publications en fonction du pays de l'éditeur
+Les barres sont remplies avec la couleur **`#E6AB02`** qui fait partie de la palette Dark2.
+
+Le choix d'afficher le nombre de publications par 7 permet de bien visualiser l'axe X autant plus que les derniers éditeurs ont publié 7 publications.
+
+### Analyse 9 - Répartition des langues des publications des revues
 
 ```{r, include=FALSE}
-# Créer une table des langues, du pays de l'éditeur et de leur fréquence
+# Créer une table des langues
 langue_pays_freq <- revues_shs_alzheimer %>%
-  filter(!is.na(pays_editeur)) %>%
-  count(language_s, pays_editeur) %>%
+  count(language_s) %>%
   arrange(desc(n))
 
 # Créer la visualisation avec un graphique à barres empilées
-ggplot(langue_pays_freq, aes(x = fct_reorder(language_s, n), y = n, fill = pays_editeur)) +
-  geom_bar(stat = "identity") +
+ggplot(langue_pays_freq, aes(x = fct_reorder(language_s, n), y = n)) +
+  geom_bar(stat = "identity", fill = "#E6AB02", color = "black") +  # Modifier les couleurs
   labs(
-    title = "Répartition des langues des publications SHS sur la maladie d'Alzheimer en fonction du pays de l'éditeur",
+    title = "Répartition des langues des publications SHS sur la maladie d'Alzheimer",
     x = "Langue",
     y = "Nombre de publications",
-    fill = "Pays de l'éditeur"
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+### Analyse n - Top des revues les plus actives
+
+Nous allons tout d'abord ressortir le top 20 des revues ayant le nb le plus élevé des publications
+
+```{r}
+# Analyse des revues les plus actives
+top_revues <- revues_shs_alzheimer %>%
+  count(journalTitle_s) %>%  # Compter le nombre de publications par revue
+  arrange(desc(n)) %>%  # Trier par ordre décroissant du nombre de publications
+  head(20)  # Sélectionner les 20 revues les plus actives
+```
+
+Nous allons attribuer une discipline à chacune de ces revues. Pour ce faire, nous avons chercher sur le moteur de recherche HAL pour identifier le domaine dans lequel chaque revue publie le plus.
+
+```{r}
+top_revues <- top_revues %>%
+  mutate(domaine_revue = case_when(
+    journalTitle_s == "Journal of Alzheimer's Disease" ~ "Life Sciences",
+    journalTitle_s == "NPG: Neurologie - Psychiatrie - Gériatrie" ~ "Humanities and Social Sciences",
+    journalTitle_s == "Gériatrie et psychologie & neuropsychiatrie du vieillissement" ~ "Life Sciences",
+    journalTitle_s == "Psychologie & NeuroPsychiatrie du vieillissement" ~ "Life Sciences",
+    journalTitle_s == "Retraite et société" ~ "Humanities and Social Sciences",
+    journalTitle_s == "Current Alzheimer Research" ~ "Life Sciences",
+    journalTitle_s == "Revue Neurologique" ~ "Life Sciences",
+    journalTitle_s == "Gérontologie et Société" ~ "Humanities and Social Sciences",
+    journalTitle_s == "L'Encéphale" ~ "Life Sciences",
+    journalTitle_s == "Cortex" ~ "Life Sciences",
+    journalTitle_s == "Neuropsychology" ~ "Cognitive science",
+    journalTitle_s == "Soins Gérontologie" ~ "Life Sciences",
+    journalTitle_s == "Annales Médico-Psychologiques, Revue Psychiatrique" ~ "Humanities and Social Sciences",
+    journalTitle_s == "Archives of Clinical Neuropsychology" ~ "Cognitive science",
+    journalTitle_s == "Brain and Cognition" ~ "Life Sciences",
+    journalTitle_s == "Journal de droit de la santé et de l'assurance maladie" ~ "Humanities and Social Sciences",
+    journalTitle_s == "Journal of Clinical and Experimental Neuropsychology" ~ "Cognitive science",
+    journalTitle_s == "L'Évolution Psychiatrique" ~ "Humanities and Social Sciences",
+    journalTitle_s == "RDSS. Revue de droit sanitaire et social" ~ "Humanities and Social Sciences",
+    journalTitle_s == "Sciences Sociales et Santé" ~ "Humanities and Social Sciences",
+    TRUE ~ "Autre"
+  ))
+```
+
+Maintenant nous allons créer notre graphique des revues les plus actives qui mentionne également le domaine des revues
+
+```{r}
+
+# Créer un graphique à barres des revues les plus actives avec domaine_revue
+ggplot(top_revues, aes(x = n, y = fct_reorder(journalTitle_s, n), fill = domaine_revue)) +
+  geom_bar(stat = "identity", color = "black") +
+  labs(
+    title = "Revues les plus actives dans les publications SHS sur la maladie d'Alzheimer",
+    x = "Nombre de publications",
+    y = "Revue",
+    fill = "Domaine de revue"
+  ) +
+  scale_fill_brewer(palette = "Dark2") +  
+  theme_minimal()
 
 ```
 
