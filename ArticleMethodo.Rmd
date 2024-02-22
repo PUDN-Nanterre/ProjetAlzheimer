@@ -1,5 +1,5 @@
 ---
-title: "Alzheimer_PUDN"
+title: "Gestion de projet (collaboration avec PUDN)"
 author: "Remaissa BENDIB, Hanjoon KO, Gracia YAN"
 date: "`r Sys.Date()`"
 output:
@@ -9,6 +9,7 @@ output:
 ---
 
 # Introduction
+Ce projet du cours de Gestion de projet de la formation en Information et Communication à l'Univeristé Paris Nanterre a pour objectif de collaborer avec des organisations françaises pour un projet spécifique. Notre projet, en collaboration avec PUDN (Plateforme Universitaire de Données de Nanterre), vise à gérer les recherches sur la maladie d'Alzheimer archivées sur HAL. En utilisant l'API de HAL, nous téléchargeons les données des articles et les nettoyons pour analyser les recherches sur la maladie ainsi que les revues dans lesquelles elles sont publiées.
 
 # Présentation HAL
 
@@ -491,10 +492,14 @@ ggplot(top_revues, aes(x = n, y = fct_reorder(Abbréviation, n), fill = domaine_
 
 Analyse des auteurs les plus actifs dans les revues SHS : Identification des auteurs avec le plus grand nombre de publications sur Alzheimer.
 
-Créer un jeu de données pour analyser les auteurs et distinguer les auteurs de chaque publication.
+Sélectionner les colonnes essentielles pour faciliter notre analyse (docid, publicationDateY_i, docType_s, language_s, domain_s, primaryDomain_s, openAccess_bool, submitType_s, journalTitle_s, journalPublisher_s, authFullName_s, title_s, subTitle_s, citationRef_s, publicationDate_s).
+
 ```{r, include=TRUE}
 revues_shs_auteur <- revues_shs_alzheimer %>% select(1:14,26) 
 ```
+
+Distinguer les auteurs de chaque publication.
+
 ```{r, include=TRUE}
 revues_shs_auteur$AutList <- strsplit(revues_shs_auteur$authFullName_s, ",")
 ```
@@ -508,7 +513,7 @@ for(i in 1:length(revues_shs_auteur$AutList)){
   revues_shs_auteur$nbAut[[i]] <- length(revues_shs_auteur$AutList[[i]])}
 ```
 
-Dupliquer chaque lignes de dataframe le nombre de fois spécifié dans la colonne nbAut et attribuer des valeurs d'ordre. Si la valeur docid de la ligne actuelle est identique à celle de la ligne précédente, alors la valeur d'ordre de la ligne actuelle est définie comme étant égale à la valeur d'ordre de la ligne précédente augmentée de 1. Sinon, la valeur d'ordre de la ligne actuelle est définie comme étant 1.
+Dupliquer chaque lignes de dataframe le nombre de fois spécifié dans la colonne 'nbAut' et attribuer des valeurs d'ordre. Si la valeur 'docid' de la ligne actuelle est identique à celle de la ligne précédente, alors la valeur d'ordre de la ligne actuelle est définie comme étant égale à la valeur d'ordre de la ligne précédente augmentée de 1. Sinon, la valeur d'ordre de la ligne actuelle est définie comme étant 1.
 
 ```{r, include=TRUE}
 revues_shs_auteur <- revues_shs_auteur[rep(1:nrow(revues_shs_auteur), 
@@ -523,7 +528,7 @@ for(i in 2:length(revues_shs_auteur$ordre)){
 }
 ```
 
-Extraire la valeur correspondante à la position de la colonne ordre dans la colonne AutList de chaque ligne et l'assigner à la colonne Autuer.
+Extraire la valeur correspondante à la position de la colonne ordre dans la colonne 'AutList' de chaque ligne et l'assigner à la colonne 'Autuer'.
 
 ```{r, include=TRUE}
 revues_shs_auteur$Auteur <- NA
@@ -532,12 +537,7 @@ for(i in 1:length(revues_shs_auteur$ordre)){
   revues_shs_auteur$Auteur[i] <- revues_shs_auteur$AutList[[i]][revues_shs_auteur$ordre[i]]}
 ```
 
-Créer un nouveau jeu de données pour faire visible la collaboration des auteurs
-
-```{r, include=FALSE}
-library(data.table)
-```
-
+Créer un tableau pour voir le nom des auteurs et leur nombre de publications. Après avoir réarrangé en ordre de sa fréquentation, on sélectionne les dix auteurs les plus actifs.
 
 ```{r, include=TRUE}
 aut_actif <- table(revues_shs_auteur$Auteur)
@@ -546,23 +546,30 @@ top_aut <- aut_actif_df[order(aut_actif_df$frequentation, decreasing = TRUE), ]
 top_10 <- head(top_aut, 10)
 ```
 
-
-Sélectionner dix auteurs les plus actifs et rechercher le discipline de chaqu'un. Mohamad El Haj, dans le domaine de psychologie, est l'auteur le plus actif avec 38 publications sur la maladie d'alzheimer. Entre les dix auteurs, cinq personnes contribuent au domaine de psychologie, quatre au gérontologie et un à la philosophie.
+Afin de comprendre les disciplines principales des dix auteurs, nous recherchons sur Internet leurs informations professionnelles et les ajouter dans une nouvelle colonne.
 
 ```{r, include=TRUE}
 aut_discipline <- c("Psychologie", "Psychologie", "Gérontologie", "Gérontologie", "Gérontologie", "Gérontologie", "Psychologie", "Philosophie", "Psychologie", "Psychologie")
 
 top_10$Discipline <- factor(aut_discipline, levels = c("Psychologie", "Gérontologie", "Philosophie"))
+```
 
+```{r, include=TRUE}
 ggplot(top_10, aes(x = reorder(aut, -frequentation), y = frequentation, fill = Discipline)) +
   geom_bar(stat = "identity") + 
   scale_fill_manual(values = c("Psychologie" = "#1B9E77", "Gérontologie" = "#D95F02", "Philosophie" = "#7570B3")) +
   labs(title = "Les auteurs les plus actifs", x = "Auteur", y = "Nombre de publications") + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+  
+Mohamad El Haj, dans le domaine de psychologie, est l'auteur le plus actif avec 38 publications sur la maladie d'alzheimer. Entre les dix auteurs, cinq personnes contribuent au domaine de psychologie, quatre au gérontologie et un à la philosophie.
 
-À quelle revue les cinq auteurs les plus actifs ont-ils publié leurs recherches ?
+  
+  Nous filtrons les cinq meilleurs auteurs et montrons les revues dans lesquelles ils ont écrit leurs recherches.
 
+```{r, include=FALSE}
+library(kableExtra)
+```
 ```{r, include=TRUE}
 aut_rev <- revues_shs_auteur %>% 
   filter(Auteur == "Mohamad El Haj" | 
@@ -578,11 +585,9 @@ aut_rev <- revues_shs_auteur %>%
   summarize(Journals = paste(journalTitle_s, collapse = ", "))
 
 ```
+
 ```{r, include=TRUE}
-library(kableExtra)
-```
-```{r, include=TRUE}
-kbl(aut_rev, caption = "Journals Written by Authors") %>%
+kbl(aut_rev, caption = "Dans quelle revue les auteurs actifs ont-ils publié ?") %>%
   kable_styling(full_width = FALSE) %>%
   row_spec(0, bold = TRUE, color = "white", background = "skyblue")
 ```
@@ -642,9 +647,10 @@ nuage_corpus_clean_fr <- tm_map(nuage_corpus_clean_fr, content_transformer(funct
 nuage_corpus_clean_fr<-tm_map(nuage_corpus_clean_fr,removePunctuation)
 nuage_corpus_clean_fr<-tm_map(nuage_corpus_clean_fr,stripWhitespace)
 ```
-Le mot "personnes" est le plus utilisé dans le titre des publications françaises. Cependant, vu que ce mot est neutre, il est mieux de faire références les mots en violet les plus utilisé en deuxième place, comme : clinique, cognitive, mémoire, etc. Il y a des mots anglais (mild, care), mais c'est parce que les auteurs ont utilisé les mots anglais directement dans le titre français.
+  
+  Le mot 'personnes' est le plus couramment utilisé dans les titres des publications françaises. Cependant, étant donné que ce mot est neutre, il est préférable de faire référence aux mots en violet les plus utilisés en deuxième place, tels que 'clinique', 'cognitive', 'mémoire', etc. Il existe également des mots anglais tels que 'mild' et 'care', mais c'est parce que les auteurs ont directement utilisé ces termes anglais dans les titres en français.
 
-Exemple : "Conscience des troubles dans la maladie d’Alzheimer et le mild cognitive impairment"
+*Exemple : "Conscience des troubles dans la maladie d’Alzheimer et le mild cognitive impairment"*
 
 
 ```{r, include=TRUE, warning=FALSE}
@@ -673,7 +679,9 @@ nuage_corpus_clean_en<-tm_map(nuage_corpus_clean_en,removePunctuation)
 nuage_corpus_clean_en<-tm_map(nuage_corpus_clean_en,stripWhitespace)
 
 ```
-Nous pouvons voir plusieurs de mot-clés importants qui montrent les sujets souvent recherché dans les publications sur la maladie alzheimer. Les mots les plus souvent utilisés sont Memory et Cognitive, suite à Patienst, Impairment, Mild, Dementia et etc.
+
+  
+  Nous pouvons observer plusieurs mots-clés importants qui représentent les sujets souvent recherchés dans les publications sur la maladie d'Alzheimer. Les mots les plus fréquemment utilisés sont 'memory' et 'cognitive', suivis de 'patients', 'impairment', 'mild', 'dementia', etc.
 
 ```{r, include=TRUE, warning=FALSE}
 wordcloud(nuage_corpus_clean_en,max.words = 50, min.freq =1, colors = brewer.pal(8, "Dark2"), rot.per=0.35)
