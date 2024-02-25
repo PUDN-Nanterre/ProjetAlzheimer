@@ -12,6 +12,63 @@ output:
 
 Ce projet du cours de Gestion de projet de la formation en Information et Communication à l’Université Paris Nanterre a pour objectif de collaborer avec des organisations françaises pour un projet spécifique. Notre projet, en collaboration avec PUDN (Plateforme Universitaire de Données de Nanterre), vise à gérer les recherches sur la maladie d'Alzheimer archivées sur HAL. En utilisant l'API de HAL, nous téléchargeons les données des articles et les nettoyons pour analyser les recherches sur la maladie ainsi que les revues dans lesquelles elles sont publiées.
 
+### **Introduction aux librairies**
+
+Le succès d'une analyse de données en R dépend souvent de l'utilisation des librairies appropriées. Les librairies fournissent des fonctions, des outils et des méthodes spécifiques qui facilitent la manipulation des données, la visualisation et l'analyse statistique. Dans ce guide, nous allons utiliser plusieurs librairies, parmi lesquelles, on retrouve :
+
+#### **1. Librairie permettant le chargement des données :**
+
+-   **Readr :** Utilisée pour lire et charger des données tabulaires à partir de fichiers plats, offrant une méthode efficace pour **importer des données dans R.**
+
+#### **2. Librairie de nettoyage de données :**
+
+-   **Labelled :** Utile pour **travailler avec des données étiquetées**.
+
+-   **Stringr :** Offre des fonctionnalités avancées pour **la manipulation de chaînes de caractères,** particulièrement utile lors du nettoyage et de la préparation des données.
+
+-   **Textcat** : Détecte la langue d'un document textuel. Elle est basée sur des modèles de langage statistiques pour déterminer la probabilité qu'un document soit écrit dans une langue spécifique.
+
+#### **3. Statistiques descriptives rapides :**
+
+-   **Skimr :** Génère des statistiques descriptives rapides pour l'ensemble du jeu de données, offrant un **aperçu rapide des variables et de leur distribution.**
+
+#### **4. Manipulation et visualisation des données :**
+
+-   **Tidyverse :** Collection de librairies (ggplot2, dplyr, tidyr, etc.) pour **le nettoyage, la manipulation et la visualisation des données**. Adoptez une approche cohérente et "propre" de l'analyse des données.
+
+-   **GGPlot2 :** Librairie de visualisation pour **créer une variété de graphiques et de diagrammes,** particulièrement utile pour représenter visuellement les tendances, les distributions et les relations dans les données.
+
+-   **Ggrepel :** Extension de ggplot2 utilisée pour **éviter les chevauchements de texte dans les graphiques**, améliorant la lisibilité des étiquettes.
+
+-   **KableExtra :** Permet de **créer des tableaux personnalisables** en formatant les sorties de dataframes, particulièrement utile lors de la présentation des résultats.
+
+-   **Wordcloud et Wordcloud2 :** Utilisées pour **générer des nuages de mots basés** sur les titres des publications, offrant une visualisation des termes les plus fréquemment utilisés.
+
+-   **RColorBrewer et Viridis :** Fournissent des **palettes de couleurs** pour les visualisations graphiques, améliorant la lisibilité et l'esthétique des graphiques.
+
+#### **5. Prétraitement du texte :**
+
+-   **TM (Text Mining) et SnowballC :** Utilisées pour le prétraitement du texte, notamment pour la création d'un corpus et le **nettoyage des données textuelles.**
+
+    En garantissant que nous avons installé et chargé ces librairies au début de notre projet, nous nous assurons d'avoir toutes les fonctionnalités nécessaires pour effectuer une analyse complète.
+
+```{r, include=FALSE}
+
+# Chargement des librairies nécessaires
+library(readr)      # Pour lire et charger des données tabulaires
+library(labelled)   # Pour travailler avec des données étiquetées
+library(questionr)  # Fournit des outils d'analyse de données en sciences sociales
+library(stringr)    # Pour la manipulation avancée de chaînes de caractères
+library(tidyverse)  # Collection de librairies (dplyr, ggplot2, tidyr) pour une analyse cohérente
+library(skimr)      # Génère des statistiques descriptives rapides pour l'ensemble du jeu de données
+library(ggplot2)    # Création de graphiques et de visualisations
+library(ggrepel)    # Évite les chevauchements de texte dans les graphiques
+library(kableExtra) # Personnalisation des tableaux
+library(wordcloud)   # Nuage de mots
+library(wordcloud2)  # Nuage de mots interactif
+library(textcat) #  Classification automatique de texte 
+```
+
 # Présentation HAL
 
 # Extraction à partir de l'API
@@ -20,14 +77,9 @@ Reprendre la méthodo de Abir Gabriel en la modifiant ?
 
 <https://gitlab.huma-num.fr/bchauvel/biblioalzheimer/-/blob/main/1_Extraction/FicheMethode_requeteHAL.Rmd?ref_type=heads>
 
-```{r, include=FALSE}
-library(readr)
-library(labelled)
-library(questionr)
-library(stringr)
-library(tidyverse)
-library(skimr)
-```
+Pour mener à bien notre analyse, nous commençons par extraire des données pertinentes à partir de l'API HAL. Ce dernier est une ressource centralisée regroupant des publications scientifiques en libre accès.
+
+Nous utilisons les requêtes suivantes pour obtenir les informations nécessaires :
 
 ```{r}
 
@@ -42,7 +94,7 @@ url <- "https://api.archives-ouvertes.fr/search/hal/?q=alzheimer&rows=7000&wt=bi
 options(timeout=600) # pour forcer le temps limite de chargement (si faible connexion internet)
 download.file(url, destfile = "AlzheimerHAL.bib")
 
-# Le fichier csv est ensuite importé dans la session R sous forme de tableau de données (le fichier bibtext sera utilisé ultérieurement).
+# Le fichier csv est ensuite importé dans la session R sous forme de tableau de données
 dataset_alzheimer <- read.csv("AlzheimerHAL.csv")
 ```
 
@@ -50,15 +102,19 @@ dataset_alzheimer <- read.csv("AlzheimerHAL.csv")
 
 ## Étiquetage des variables
 
-Les variables portent les mêmes noms que les champs sélectionnés dans le lien d'export dans l'API : noms des variables du dataframe
+Les noms des variables du dataframe sont identiques aux champs sélectionnés lors de l'export depuis l'API. Pour une meilleure compréhension et documentation, nous utilisons la fonction **`var_label`** du package **`labelled`** pour ajouter des étiquettes informatives à chaque variable.
 
 ```{r, include=TRUE}
+
+# Affichage des noms des variables
 names(dataset_alzheimer)
 ```
 
 On ajoute des étiquettes aux noms de variables (avec le package labelled), pour les documenter et limiter les risques de mauvaises interprétations.
 
 ```{r, include=TRUE}
+
+# Ajout des étiquettes aux noms de variables
 var_label(dataset_alzheimer) <- list(
   docid = "Identifiant HAL du dépôt", 
   publicationDateY_i = "Date de publication : année", 
@@ -95,7 +151,7 @@ var_label(dataset_alzheimer) <- list(
 
 ## Étiquetage des modalités
 
-De même pour rendre les modalités plus explicites, par exemple, le type et la langue du document :
+Afin de rendre les modalités plus explicites, par exemple, pour le type et la langue du document, nous utilisons la fonction **`val_labels`** pour attribuer des libellés descriptifs aux niveaux des variables catégorielles.
 
 ```{r, include=TRUE}
 val_labels(dataset_alzheimer$docType_s) <- c(
@@ -114,15 +170,24 @@ val_labels(dataset_alzheimer$docType_s) <- c(
   "Vidéo" = "VIDEO")
 ```
 
+Ces étapes d'étiquetage des variables et des modalités **renforcent la compréhension du jeu de données et minimisent les risques de mauvaises interprétations** lors de l'analyse ultérieure.
+
+Et pour finir cette partie, nous allons générer une table présentant les fréquences de chaque type de documents dans notre dataframe. Le but étant d'avoir une vie d'ensemble sur la distribution de ces types.
+
 ```{r, include=TRUE}
 
+# Affichage des fréquences des types de documents
 freq(dataset_alzheimer$docType_s, sort = "dec", valid = FALSE, total = TRUE) %>% knitr::kable(caption = "Types de documents présents dans le corpus")
 
 ```
 
-## Langue
+**Langue :**
+
+Comme déjà fait avant, dans cette partie du code liées aux données de langue, nous allons encore utiliser la fonction 'val_labels' pour attribuer des étiquettes aux codes de langues.
 
 ```{r, include=TRUE}
+
+# Étiquetage des langues
 val_labels(dataset_alzheimer$language_s) <- c(
   "Allemand" = "de", 
   "Anglais" = "en", 
@@ -133,11 +198,14 @@ val_labels(dataset_alzheimer$language_s) <- c(
 ```
 
 ```{r, include=TRUE}
+# Affichage des fréquences des langues dans le corpus
 freq(dataset_alzheimer$language_s, sort = "dec", valid = FALSE, total = TRUE) %>% 
   knitr::kable(caption = "Langue du document")
 ```
 
-Les codes domaines sont particulièrement détaillés:
+**Domaines :**
+
+Maintenant, nous souhaitons afficher les codes domaines les plus fréquents dans le jeux de données. Pour ce faire, nous allons utiliser encore une fois la fonction **`freq()`**
 
 ```{r, include=TRUE}
 freq(dataset_alzheimer$primaryDomain_s, sort = "dec", valid = FALSE, total = TRUE) %>% 
@@ -145,25 +213,33 @@ freq(dataset_alzheimer$primaryDomain_s, sort = "dec", valid = FALSE, total = TRU
   knitr::kable(caption = "Domaines primaires détaillés (les 20 plus fréquents)")
 ```
 
-On créé une variable `domaine_gpe`pour les regrouper.
+On créé une variable `domaine_gpe`pour les regrouper les domaines.
 
-extraire les débuts de chaînes de caractères dans une nouvelle variable
+Nous avons défini une expression régulière (**`"^chim|^info|^math|^phys|^scco|^sde|^sdu|^sdv|^shs|^spi|^stat"`**) qui spécifie les motifs que nous cherchons.
 
-termes recherchés : commence par (\^) chim ou (\|) commence par,....
+Chaque motif commence par le symbole **`^`** indiquant le début de la chaîne de caractères, suivi d'une abréviation de domaine (par exemple, **`chim`** pour chimie, **`info`** pour informatique, etc.).
+
+Ces motifs sont regroupés avec le symbole **`|`**, qui fonctionne comme un "OU". Ainsi, la recherche correspond à des chaînes qui commencent par l'une des abréviations spécifiées.
 
 ```{r, include=TRUE}
 mots <- "^chim|^info|^math|^phys|^scco|^sde|^sdu|^sdv|^shs|^spi|^stat"
 ```
 
-domaine_gpe prend les modalités extraites de primaryDomains
+Cette partie du code prépare la création d'une variable **`domaine_gpe`** en extrayant les débuts de chaînes de caractères basés sur des critères spécifiques. Le but étant de regrouper les domaines en catégories plus larges en fonction de leurs abréviations.
+
+Maintenant, nous allons créer la colonne en question. Dans notre code, on spécifie que notre colonne contient les résultats de l'extraction des motifs spécifiés (**`pattern = mots`**) de la colonne existante **`primaryDomain_s`** (qui représente les domaines primaires).
 
 ```{r, include=TRUE}
+
+#Création de nouvelle colonne
 dataset_alzheimer$domaine_gpe <- str_extract(dataset_alzheimer$primaryDomain_s, pattern = mots)
 ```
 
-ajoute des étiquettes aux modalités de domaine_gpe
+Nous allons ajouté des étiquettes aux modalités de la variable nouvellement créée, **`domaine_gpe`** :
 
 ```{r, include=TRUE}
+
+#Ajout des étiquettes aux modalités de domaine_gpe
 val_labels(dataset_alzheimer$domaine_gpe) <- c( 
   "Chimie" = "chim", 
   "Informatique [cs]" = "info", 
@@ -179,40 +255,30 @@ val_labels(dataset_alzheimer$domaine_gpe) <- c(
   "Statistiques [stat]" = "stat")
 ```
 
-## Tableau de fréquence
+Et pour finir, obtenir les fréquences de la nouvelle variable :
 
 ```{r, include=TRUE}
+
+#Création d'un tableau de fréquence
 freq(dataset_alzheimer$domaine_gpe, sort = "dec", valid = FALSE) %>% 
   knitr::kable(caption = "Domaines primaires regroupés")
-
 ```
-
-```{r, include=TRUE}
-dataset_alzheimer$language_gpe <- as.character(dataset_alzheimer$language_s)
-
-dataset_alzheimer$language_gpe[dataset_alzheimer$language_s != "en" & dataset_alzheimer$language_s != "fr"] <- "autre"
-
-val_labels(dataset_alzheimer$language_gpe) <- c( "Anglais" = "en", "Français" = "fr", "Autres" = "autre" )
-
-freq(dataset_alzheimer$language_gpe) %>% 
-  knitr::kable(caption = "Langues du corpus")
-```
-
-Sauvegarde des données et de leurs étiquettes
 
 On sauvegarde les données et leur configuration dans le fichier "AlzheimerHAL.Rda" qui sera utilisé pour faire les analyses.
 
 ```{r, include=TRUE}
+
+#Sauvegarde du jeux de données dans un fichier Rda
 save(dataset_alzheimer, file = "AlzheimerHAL.Rda")
 ```
 
-## Préparation des dataset avant de faire des analyses
+## Préparation des datasets spécifiques pour faire des analyses
 
--   [Étape 1 :]{.underline} Préparation du dataset général
+-   [Étape 1:]{.underline} Préparation du dataset général
 
 Dans cette étape, nous procéderons à la préparation du dataset général pour faire des visualisations sur les tendances générales.
 
--   [Étape 2 :]{.underline} Création d'un sub-dataset spécialisé pour les revues
+-   [Étape 2:]{.underline} Création d'un sub-dataset spécialisé pour les revues
 
 Dans cette étape, nous créerons un sub-dataset spécifique qui se concentre exclusivement sur les publications de type "revues". Cela permettra une analyse plus approfondie et ciblée sur ce sous-ensemble de données, facilitant ainsi l'extraction d'informations spécifiques liées aux revues.
 
@@ -278,12 +344,11 @@ dataset_shs_alzheimer <- dataset_shs_alzheimer %>%
 
 ### Étape 2
 
-Création d'un dataset pour analyser les données liées aux revues
-
-Affichage des données liées aux types de documents
+Cette étape consiste dans la création d'un dataset pour analyser les données liées aux revues.
 
 ```{r, include=TRUE}
 
+#Affichage des données liées aux types de documents
 unique_doctype <- unique(dataset_shs_alzheimer$docType_s) 
 print(unique_doctype)
 ```
@@ -300,11 +365,11 @@ revues_shs_alzheimer <- dataset_shs_alzheimer %>%
   )
 ```
 
-Nous avons donc 394 publications de revues.
+Nous avons 394 publications de revues.
 
-**Nettoyage des données liées à la langue :**
+Nous allons nettoyer la colonne de langue dans notre mini-dataset des revues. Nous allons uniquement effectuer le nettoyage de la langue ici, car notre analyse linguistique est spécifiquement axée sur les revues. Il est important de noter que nous avons choisi de nettoyer la colonne de langue en raison d'erreurs potentielles liées à la saisie des données sur HAL.
 
-Pour nettoyer nos données de langue, nous allons tout d'abord les afficher :
+Pour nettoyer nos données de langue, nous allons tout d'abord les afficher pour avoir une vue sur l'existant :
 
 ```{r, include=TRUE}
 
@@ -314,30 +379,27 @@ language_counts <- table(revues_shs_alzheimer$language_s)
 # Afficher la table
 print(language_counts)
 
-
 ```
 
-```{r, include=TRUE}
-library(textcat)
-```
+Pour nettoyer notre colonne de langue, nous allons utiliser la librarie textcat. Cette librairie basée sur des modèles NLP pré-entrainés permet la détection automatique de la langue d'un texte. Il s'agit plus précisemment d'un N_gramm de la base de donnés pour 26 langues basé sur le corpus miltilingue de l'initiative Corpus Européen. Pour plus d'informations, visitez : (<https://cran.r-project.org/web/packages/textcat/textcat.pdf>)
 
-Pour nettoyer notre colonne de langue, nous allons utiliser la librarie textcat. Cette librairie basé sur des modèles NLP pré-entrainés permet la détection automatique de la langue d'un texte. Il s'agit plus précisemment d'un N_gramm de la base de donnés pour 26 langues basé sur le corpus miltilingue de l'initiative Corpus Européen (<https://cran.r-project.org/web/packages/textcat/textcat.pdf>)
+Notre approche consiste à détecter la langue du document à partir du titre, puis à la comparer avec la langue déjà saisie sur HAL (dans la colonne "language_s"). Nous procéderons ensuite à une vérification manuelle des données incohérentes, c'est-à-dire lorsque le résultat de la détection diffère de la langue enregistrée sur HAL. Cette vérification sera effectuée en consultant la publication en ligne pour assurer la précision des données.
 
 ```{r, include=FALSE}
+
+# Utilisation de la fonction textcat pour détecter la langue des titres d'articles
 revues_shs_alzheimer$language_verification <- sapply(revues_shs_alzheimer$title_s, textcat)
 
-# Afficher le dataframe avec la colonne language_verification
+# Afficher les 20 premières lignes du DataFrame avec la nouvelle colonne language_verification
 head(revues_shs_alzheimer, 20)
 
 ```
 
-Nous avons choisi de détecter la langue de la colonne title_s
+Nous allons créer une nouvelle colonne appelée 'language_verification'. Cependant, la bibliothèque renvoie le résultat en tant que 'french' pour le français et 'english' pour l'anglais. Étant donné que nous voulons comparer nos résultats avec ceux déjà saisis sur HAL, nous devons ajuster la sortie :
 
-Une colonne language_verification a été donc créé. Sauf que la libraire affiche le résultat comme étant : soit : french pour français, soit english pour anglais. Vu que nous souhaitons comparer nos résultats à ceux déjà saisis sur HAL, nous devons modifier l'output :
+```{r, include=FALSE}
 
-```{r}
-
-# Modifier les valeurs en "fr" ou "en" en fonction de la langue détectée
+#Modifier les valeurs en "fr" ou "en" en fonction de la langue détectée
 revues_shs_alzheimer$language_verification <- ifelse(revues_shs_alzheimer$language_verification == "french", "fr",
                                                      ifelse(revues_shs_alzheimer$language_verification == "english", "en", NA))
 
@@ -345,10 +407,9 @@ revues_shs_alzheimer$language_verification <- ifelse(revues_shs_alzheimer$langua
 
 Nous allons comparer ces données à celles déjà saisies sur HAL (donc language_s)
 
-Filtrer les lignes où language_verification n'est pas égal à language_s
-
 ```{r, include=TRUE}
 
+#Filtrer les lignes où language_verification n'est pas égal à language_s
 lignes_langue_différente <- revues_shs_alzheimer %>%
   mutate(language_verification = as.character(language_verification),
          language_s = as.character(language_s)) %>%
@@ -356,15 +417,17 @@ lignes_langue_différente <- revues_shs_alzheimer %>%
 
 ```
 
-Afficher les lignes
-
 ```{r, include=FALSE}
+
+#Afficher les lignes
 print(lignes_langue_différente)
 ```
 
 Maintenant que nous avons les lignes qui ne correspondent pas, nous allons vérifier manuellement si c'est le cas ou non, puis nous allons corriger les incohérences.
 
-Nettoyer les données liées à la langue à partir de l'identifiant docid
+Nous allons corriger les données incorrectes à partir de l'identifiant docid :
+
+Il est à noter que nous avons choisi 'docid' car c'est l'identifiant unique, et donc il ne se reproduit pas dans chaque ligne du jeu de données. Il renvoie à chaque publication."
 
 ```{r, include=TRUE}
 
@@ -379,9 +442,14 @@ revues_shs_alzheimer <- revues_shs_alzheimer %>%
 
 ```
 
-Il y a également une incohérence dans les lignes concernant les éditeurs, nous allons mettre à jour la colonne journalPublisher_s :
+Nous avons également observé une incohérence dans les lignes concernant les éditeurs. L'éditeur Elsevier est parfois écrit Elsevier Masson ou simplement Elservier. Nous allons donc mettre à jour la colonne 'journalPublisher_s'.
+
+Pour ce faire, nous allons utiliser la fonction **`mutate`** du package **`dplyr`** pour effectuer une transformation sur la colonne **`journalPublisher_s`** du dataframe **`revues_shs_alzheimer`**. La transformation est réalisée avec la fonction **`if_else`**, qui permet de remplacer les occurrences de "Elsevier" dans la colonne **`journalPublisher_s`** par "Elsevier Masson".
+
+En d'autres termes, chaque fois que la valeur de la colonne **`journalPublisher_s`** est "Elsevier", elle est mise à jour avec la valeur "Elsevier Masson".
 
 ```{r, include=TRUE}
+
 revues_shs_alzheimer <- revues_shs_alzheimer %>%   
   mutate(     journalPublisher_s = if_else(journalPublisher_s == "Elsevier", "Elsevier Masson", journalPublisher_s)   )
 ```
@@ -396,74 +464,80 @@ table_journal_publisher <- table(revues_shs_alzheimer$journalPublisher_s)
 #print(table_journal_publisher)
 ```
 
-# Analyse pour répondre à nos questions
+# Analyses pour répondre à nos questions
 
 # Interprétations des résultats
 
 ### 1. Tendances annuelles de publications
 
-Analyse des tendances de publication au fil des années : Identification des tendances globales et par type de publication.
+Pour avoir une idée globale de la recherche et de la popularité de HAL, il est intéressant d’explorer l’évolution temporelle des publications sur le sujet de la maladie d’Alzheimer dans le domaine qui nous intéresse : les Sciences Humaines et Sociales.
 
-Nous allons calculer le nombre de publications pour chaque année et type de document en créant un dataframe de résumé.
+Nous allons tout d'abord calculer le nombre de publications pour chaque année et type de document en créant un dataframe de résumé.
 
 ```{r, include=TRUE}
+
+# Résumé des tendances de publication par année et type de document, en excluant les types "UNDEFINED".
 tendances_publication <- dataset_shs_alzheimer %>%
   group_by(publicationDateY_i, docType_s) %>%
   summarise(count = n()) %>%
   filter(!(docType_s %in% c("UNDEFINED")))
 view(tendances_publication)
+
 ```
 
 Visualisation des données avec la palette de couleurs Dark2 :
 
 ```{r, include=TRUE}
+
+# Création d'un graphique à barres empilées montrant les tendances des publications SHS sur la maladie d'Alzheimer depuis 1998.
 ggplot(tendances_publication, aes(x = publicationDateY_i, y = count, fill = docType_s)) +
-  geom_bar(stat = "identity", position = "stack", width = 0.7, color = "black") +
-  scale_fill_brewer(palette = "Dark2") +
+  geom_bar(stat = "identity", position = "stack", width = 0.7, color = "black") +  # Barres empilées
+  scale_fill_brewer(palette = "Dark2") +  # Palette de couleurs
   labs(
     title = "Tendances des publications SHS sur la maladie d’Alzheimer depuis 1998",
     x = "Année de publication",
     y = "Nombre de publications",
     fill = "Type de document"
-  ) +
-  theme_minimal() +
-  scale_x_continuous(breaks = unique(tendances_publication$publicationDateY_i), labels = unique(tendances_publication$publicationDateY_i)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size=7))
+  ) +  # Titres et légendes
+  theme_minimal() +  # Style minimal
+  scale_x_continuous(breaks = unique(tendances_publication$publicationDateY_i), labels = unique(tendances_publication$publicationDateY_i)) +  # Ajustements de l'axe x
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size=7))  # Ajustements des étiquettes de l'axe x
 
 ```
 
--   En 1998, les publications exclusivement dédiées à la maladie d'Alzheimer dans le domaine des SHS étaient toutes des ouvrages.
+La première publication accessible sur HAL portant sur notre sujet est un ouvrage qui a été publié en 1998. Cette date, antérieure à celle de la création de HAL, montre que la référence de publication indiquée peut aller au-delà des limites de la plateforme. HAL peut donc être un espace d’archivage de recherches scientifiques pour les ressources de plus de 25 ans.
 
--   À partir de 2001, chaque année (à l'exception de 2004), des articles portant sur la maladie d'Alzheimer dans le domaine des SHS ont été publiés dans des revues.
+Entre 2001 et 2006, il y a peu de publications. Mais il y a systématiquement un ou plusieurs articles publiés (à l’exception de 2004).
 
--   En 2012, pic de publications globales. Cinq ans plus tard, en 2017, on observe un pic dans le nombre de publications dédiées à la maladie d'Alzheimer dans le domaine des SHS.
+Il y a un pic de publications en 2012. Cette date marque la fin du Plan Alzheimer 2008-2012, projet politique qui tente d’améliorer la recherche française sur la maladie d’Alzheimer. On peut penser que de nombreuses recherches se sont intéressées, à cette période, à la maladie. Les résultats ont ensuite été publiés sur HAL.
 
--   En 2023, il y a eu une augmentation significative du nombre d'ouvrages publiés par rapport aux années précédentes dans le domaine des SHS traitant de la maladie d'Alzheimer.
+2017 est une année où HAL enregistre le plus grand nombre de publications sur son site dans cette discipline.
+
+Les articles de revues sont globalement le type de document qui y est le plus déposé.
 
 ### 2. Analyse de la répartition des publications SHS
 
-Tout d'abord, il faut installer et charger le package ggrepel s'il n'est pas déjà installé
+Pour visualiser toutes ces publications sous un autre angle, il est possible de regrouper ces données pour avoir une image résumant la répartition totale de ces publications en SHS sans l’aspect temporel. Pour cela, l’analyse sera représentée sous forme de camembert et gagne en lisibilité grâce aux couleurs et aux étiquettes de pourcentage.
+
+Avant de créer le camambert, nous allons tout d'abord créer un résumé des comptes et pourcentages pour chaque catégorie docType_s :
 
 ```{r, include=TRUE}
-library(ggrepel)
-```
 
-Nous allons créer un résumé des comptes et pourcentages pour chaque catégorie docType_s :
-
-```{r, include=TRUE}
+# Calcul du nombre d'occurrences de chaque type de document et calcule le pourcentage par rapport au total.
 count_data <- dataset_shs_alzheimer %>%
-  count(docType_s) %>%
-  mutate(percentage = prop.table(n) * 100)
+  count(docType_s) %>%  # Calcul du nombre d'occurrences par type de document
+  mutate(percentage = prop.table(n) * 100)  # Ajout d'une colonne avec le pourcentage par rapport au total
 
 ```
 
-Nous allons créer un camembert avec des étiquettes de pourcentage à l'extérieur et des flèches :
+Maintenant, nous allons créer un camembert avec des étiquettes de pourcentage à l'extérieur et des flèches :
 
 ```{r, include=TRUE}
 
+# Utilisation de ggplot2 et ggrepel pour générer un graphique polarisé avec des étiquettes représentant les pourcentages.
 ggplot(count_data, aes(x = "", y = n, fill = docType_s)) +
-  geom_bar(width = 1, stat = "identity", color = "white") +
-  
+  geom_bar(width = 1, stat = "identity", color = "white") +  
+
   geom_label_repel(aes(
     label = scales::percent(percentage / 100),
     fill = docType_s
@@ -472,14 +546,14 @@ ggplot(count_data, aes(x = "", y = n, fill = docType_s)) +
   box.padding = 0.5,
   point.padding = 0.3,
   arrow = arrow(length = unit(0.02, 'npc')),
-  show.legend = FALSE) +
-  
-  coord_polar("y", start = 0) +
-  scale_fill_brewer(palette = "Dark2") +
-  theme_void() +
-  theme(axis.text = element_blank()) +
+  show.legend = FALSE) +  # Ajout des étiquettes avec les pourcentages
+
+  coord_polar("y", start = 0) +  
+  scale_fill_brewer(palette = "Dark2") +  # Définir la palette de couleurs
+  theme_void() +  # Suppression des éléments du thème par défaut
+  theme(axis.text = element_blank()) +  
   labs(title = "Répartition des types de publications sur la maladie d'Alzheimer",
-       fill = "Type de publication")
+       fill = "Type de publication")  # Ajout des légendes
 
 ```
 
@@ -499,21 +573,38 @@ Les barres sont remplies avec la couleur **`#E6AB02`** qui fait partie de la pal
 
 -   Environ 2.99% des types de documents sont classés comme "Autre publication scientifique".
 
+    En d'autres termes, le grand nombre d’articles de revues est plus parlant dans ce graphique en comparaison au précédent. Ici, on peut affirmer que presque 50% des publications sur l’Alzheimer, en SHS, disponibles sur HAL, sont des articles de revues.
+
+    Cependant, ce pourcentage est le résultat des dépôts sur HAL. Il n’est pas représentatif de la recherche globale dans ce domaine puisqu’il ne s’agit que d’une seule base de données pour la recherche scientifique. Il serait intéressant de compléter ces recherches et de les comparer avec des données sur d’autres sites comme Cairn.
+
+    En deuxième position, on voit que les communications dans des congrès sont davantage publiés que les ouvrages. On peut supposer que le dépôt sur HAL, une plateforme ouverte, n’incite pas les auteurs à soumettre leurs livres qu’il est possible d’acheter.
+
 ### 3. Top des revues les plus actives
 
-Nous avons trié, dans l’ordre croissant, les 20 revues les plus actives sur le sujet de l’Alzheimer.
+Pour analyser les revues les plus actives en SHS, c'est-à-dire celles qui publient le plus de publications, couvrant les domaines principaux ou secondaires, ou ayant publié des publications SHS, nous avons trié, dans l'ordre croissant, 20 revues :
 
 ```{r, include=TRUE}
+
 # Analyse des revues les plus actives
 top_revues <- revues_shs_alzheimer %>%
-  count(journalTitle_s) %>%  # Compter le nombre de publications par revue
-  arrange(desc(n)) %>%  # Trier par ordre décroissant du nombre de publications
-  head(20)  # Sélectionner les 20 revues les plus actives
+  count(journalTitle_s) %>%  # Calcul du nombre de publications par revue
+  arrange(desc(n)) %>%  # Tri par ordre décroissant du nombre de publications
+  head(20)  # Sélection des 20 revues les plus actives
 ```
 
-Puis, nous avons associé à chaque revue un domaine principal en cherchant via le moteur de recherche HAL, dans quels domaines la revue publiait le plus.
+Comme déjà mentionné lors de la préparation du mini-dataset des revues, nous allons enrichir nos données. Pour ce faire, nous allons associer à chaque revue un domaine principal en cherchant via le moteur de recherche HAL, dans quels domaines la revue publiait le plus.
+
+Voici comment nous allons procéder, étape par étape :
+
+**1.Recherche du nom de la revue sur le moteur HAL :** On va utiliser le nom de la revue, par exemple, "Retraite et société", pour effectuer une recherche avancée sur le moteur HAL en spécifiant qu'il s'agit d'une revue.
+
+**2. Filtration** **par sujet (Subject field) :** Une fois que nous avons les résultats de la recherche, à savoir les documents publiés par cette revue sur HAL, nous allons utiliser le ruban de filtration à gauche de la page de résultats. Nous allons rechercher la section "Subject field" dans le ruban de filtrage.
+
+**3.** **Identification du domaine principal :** Dans la section "Subject field", nous allons examiner la fréquence de publications de la revue dans chaque domaine pour identifier le domaine dans lequel la revue publie le plus fréquemment.
 
 ```{r, include=TRUE}
+
+# Enrichissement des données manuellement via HAL
 top_revues <- top_revues %>%
   mutate(domaine_revue = case_when(
     journalTitle_s == "Journal of Alzheimer's Disease" ~ "Sciences du Vivant",
@@ -541,30 +632,9 @@ top_revues <- top_revues %>%
 
 ```
 
-```{r}
-top_revues$Abbréviation <- c("J Alzheimers Dis","NPG","Gériatr. psychol. Neuropsychiatr. vieil.","Psychol Neuropsychiatr Vieil","Retraite et société","Current Alzheimer Research","Rev Neurol (Paris)","GES","Encephale","Cortex","Neuropsychology","Soins Gerontol","Annales Médico-Psychologiques","Arch Clin Neuropsychol","Brain Cogn","JDSAM","JCEN","L'Évolution Psychiatrique","RDSS","Sciences Sociales et Santé")
-```
+Nous allons ajouté une nouvelle colonne appelée **`Abbréviation_revues`** au dataframe **`top_revues`**. Chaque abréviation est attribuée à une revue spécifique. Cela permet identification rapide des revues sans avoir à utiliser les noms complets de chaque revue.
 
-Maintenant nous allons créer notre graphique des revues les plus actives qui mentionne également le domaine des revues :
-
-```{r}
-
-# Créer un graphique à barres des revues les plus actives avec domaine_revue
-ggplot(top_revues, aes(x = n, y = fct_reorder(Abbréviation, n), fill = domaine_revue)) +
-  geom_bar(stat = "identity", color = "black") +
-  labs(
-    title = "Revues les plus actives",
-    x = "Nombre de publications",
-    y = "Revue",
-    fill = "Domaine de revue"
-  ) +
-  scale_fill_brewer(palette = "Dark2") +
-  scale_y_discrete(labels = function(x) str_wrap(x, width = 28)) +
-  theme_minimal()
-
-```
-
-**Abbréviation des titres de revues**\
+**Voici l'abbréviation des titres de revues que nous allons utiliser :**\
 - J Alzheimers Dis : Journal of Alzheimer's Disease\
 - NPG : NPG: Neurologie - Psychiatrie - Gériatrie\
 - Gériatr. psychol. Neuropsychiatr. vieil. : Gériatrie et psychologie & neuropsychiatrie du vieillissement\
@@ -586,23 +656,60 @@ ggplot(top_revues, aes(x = n, y = fct_reorder(Abbréviation, n), fill = domaine_
 - RDSS : RDSS. Revue de droit sanitaire et social\
 - Sciences Sociales et Santé
 
+```{r, include=TRUE}
+
+# Ajout des abbréviations aux noms des revues 
+top_revues$Abbréviation_revues <- c("J Alzheimers Dis","NPG","Gériatr. psychol. Neuropsychiatr. vieil.","Psychol Neuropsychiatr Vieil","Retraite et société","Current Alzheimer Research","Rev Neurol (Paris)","GES","Encephale","Cortex","Neuropsychology","Soins Gerontol","Annales Médico-Psychologiques","Arch Clin Neuropsychol","Brain Cogn","JDSAM","JCEN","L'Évolution Psychiatrique","RDSS","Sciences Sociales et Santé")
+```
+
+Maintenant nous allons créer notre graphique des revues les plus actives qui mentionne également le domaine des revues :
+
+```{r, include=TRUE}
+
+# Création d'un graphique à barres des revues les plus actives avec domaine_revue
+ggplot(top_revues, aes(x = n, y = fct_reorder(Abbréviation_revues, n), fill = domaine_revue)) +
+  geom_bar(stat = "identity", color = "black") +
+  labs(
+    title = "Revues les plus actives",
+    x = "Nombre de publications",
+    y = "Revue",
+    fill = "Domaine de revue"
+  ) +
+  scale_fill_brewer(palette = "Dark2") +
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 28)) +
+  theme_minimal()
+
+```
+
+Cette méthode d'enrichissemnt de données manuelle nous a permis de segmenter les domaines mais le manque d’information fournie au préalable sur la spécialité de ces revues pose un problème.
+
+En effet, cette catégorisation par nos soins ne représente pas la réalité de ces revues.
+
+Par exemple, le Journal de droit de la santé et de l’assurance maladie est très présent sur HAL dans le domaine SHS alors qu’il s’agit d’une revue qui porte davantage sur le droit et la médecine. Pour pallier ces erreurs, les auteurs doivent publier davantage sur HAL pour essayer d’atteindre une représentativité plus juste.
+
+En ce qui concerne notre graphe, d’après les 20 revues les plus actives, les trois domaines majeurs qui traitent du sujet de l’Alzheimer sur HAL sont les sciences cognitives, les sciences du vivant et les sciences humaines et sociales.
+
+En s’intéressant aux noms de ces revues, on remarque une récurrence de ce qui relève du domaine de la psychologie.
+
 ### 4. Auteurs actifs
 
-Analyse des auteurs les plus actifs dans les revues SHS : Identification des auteurs avec le plus grand nombre de publications sur Alzheimer.
+Nous allons analyser les auteurs les plus actifs dans les revues SHS. Le but étant d'identifier les auteurs avec le plus grand nombre de publications sur Alzheimer.
 
-Sélectionner les colonnes essentielles pour faciliter notre analyse (docid, publicationDateY_i, docType_s, language_s, domain_s, primaryDomain_s, openAccess_bool, submitType_s, journalTitle_s, journalPublisher_s, authFullName_s, title_s, subTitle_s, citationRef_s, publicationDate_s).
+Nous allons sélectionner les colonnes essentielles pour faciliter notre analyse :
+
+Il s'agit de : (docid, publicationDateY_i, docType_s, language_s, domain_s, primaryDomain_s, openAccess_bool, submitType_s, journalTitle_s, journalPublisher_s, authFullName_s, title_s, subTitle_s, citationRef_s, publicationDate_s).
 
 ```{r, include=TRUE}
 revues_shs_auteur <- revues_shs_alzheimer %>% select(1:14,26) 
 ```
 
-Distinguer les auteurs de chaque publication.
+Nous allons distinguer les auteurs de chaque publication.
 
 ```{r, include=TRUE}
 revues_shs_auteur$AutList <- strsplit(revues_shs_auteur$authFullName_s, ",")
 ```
 
-Créer une autre colonne pour calculer le nombre d'auteurs de chaque publication.
+Nous allons créer une autre colonne pour calculer le nombre d'auteurs de chaque publication.
 
 ```{r, include=TRUE}
 revues_shs_auteur$nbAut <- NA
@@ -611,7 +718,7 @@ for(i in 1:length(revues_shs_auteur$AutList)){
   revues_shs_auteur$nbAut[[i]] <- length(revues_shs_auteur$AutList[[i]])}
 ```
 
-Dupliquer chaque lignes de dataframe le nombre de fois spécifié dans la colonne 'nbAut' et attribuer des valeurs d'ordre. Si la valeur 'docid' de la ligne actuelle est identique à celle de la ligne précédente, alors la valeur d'ordre de la ligne actuelle est définie comme étant égale à la valeur d'ordre de la ligne précédente augmentée de 1. Sinon, la valeur d'ordre de la ligne actuelle est définie comme étant 1.
+Nous allons dupliquer chaque lignes de dataframe le nombre de fois spécifié dans la colonne 'nbAut' et attribuer des valeurs d'ordre. Si la valeur 'docid' de la ligne actuelle est identique à celle de la ligne précédente, alors la valeur d'ordre de la ligne actuelle est définie comme étant égale à la valeur d'ordre de la ligne précédente augmentée de 1. Sinon, la valeur d'ordre de la ligne actuelle est définie comme étant 1.
 
 ```{r, include=TRUE}
 revues_shs_auteur <- revues_shs_auteur[rep(1:nrow(revues_shs_auteur), 
@@ -626,7 +733,7 @@ for(i in 2:length(revues_shs_auteur$ordre)){
 }
 ```
 
-Extraire la valeur correspondante à la position de la colonne ordre dans la colonne 'AutList' de chaque ligne et l'assigner à la colonne 'Auteur'.
+Nous allons extraire la valeur correspondante à la position de la colonne ordre dans la colonne 'AutList' de chaque ligne et l'assigner à la colonne 'Auteur'.
 
 ```{r, include=TRUE}
 revues_shs_auteur$Auteur <- NA
@@ -635,7 +742,7 @@ for(i in 1:length(revues_shs_auteur$ordre)){
   revues_shs_auteur$Auteur[i] <- revues_shs_auteur$AutList[[i]][revues_shs_auteur$ordre[i]]}
 ```
 
-Créer un tableau pour voir le nom des auteurs et leur nombre de publications. Après avoir réarrangé en ordre de sa fréquentation, on sélectionne les dix auteurs les plus actifs.
+Nous allons créer un tableau pour voir le nom des auteurs et leur nombre de publications. Après avoir réarrangé en ordre de sa fréquentation, on sélectionne les dix auteurs les plus actifs.
 
 ```{r, include=TRUE}
 aut_actif <- table(revues_shs_auteur$Auteur)
@@ -690,30 +797,58 @@ kbl(aut_rev, caption = "Dans quelle revue les auteurs actifs ont-ils publié ?")
   row_spec(0, bold = TRUE, color = "white", background = "skyblue")
 ```
 
+On a établi le top 10 des auteurs les plus actifs en leur ajoutant une discipline majeure d’après leurs informations présentes sur d’autres sites Internet.
+
+HAL ne donne pas directement les informations relatives aux champs disciplinaires des auteurs. Cette recherche doit se faire manuellement et peut être assez contraignante si on cherche à représenter plus de 20 auteurs. De plus, un auteur peut avoir plusieurs disciplines majeures, ce qui est difficilement représentable sur le graphique.
+
+La psychologie représente la discipline principale de la moitié de ces auteurs. Cela semble assez vraisemblable puisqu’on a remarqué précédemment que les revues en rapport avec la psychologie sont très présentes dans nos recherches. Cette discipline se place avant la gérontologie (l’étude du vieillissement), ce qui semble assez logique étant donné la maladie dont il est question.
+
+Il y a tout de même un aspect philosophique à travers un auteur ce qui montre la diversité, voire la complémentarité, des angles d’approche pour étudier la maladie d’Alzheimer.
+
 ### 5. Répartition des langues des publications des revues
 
+Dans cette partie, nous explorons la diversité linguistique des publications dans le domaine des sciences humaines et sociales (SHS) liées à la maladie d'Alzheimer. L'analyse vise à comprendre la répartition des langues utilisées dans les revues académiques traitant de ce sujet spécifique.
+
+La première étape consiste à créer une table des fréquences des langues présentes dans notre ensemble de données.
+
 ```{r, include=TRUE}
+
 # Créer une table des langues
 langue_pays_freq <- revues_shs_alzheimer %>%
   count(language_s) %>%
   arrange(desc(n))
 view(revues_shs_alzheimer)
-# Créer la visualisation avec un graphique à barres empilées
-ggplot(langue_pays_freq, aes(x = fct_reorder(language_s, n), y = n)) +
-  geom_bar(stat = "identity", fill = "#E6AB02", color = "black") +  # Modifier les couleurs
-  labs(
-    title = "Répartition des langues des publications SHS sur la maladie d'Alzheimer",
-    x = "Langue",
-    y = "Nombre de publications",
-  ) +
-  geom_text(aes(label = n), vjust = -0.5, color = "black", size = 3, fontface="bold")+
-  theme_minimal() +
-  theme(axis.text.x = element_text(hjust = 1))
 ```
+
+On crée la visualisation :
+
+```{r, include=TRUE}
+
+# Créer la visualisation avec un graphique à barres empilées
+ggplot(langue_pays_freq, aes(x = fct_reorder(language_s, n), y = n)) +  # Utilisation de ggplot avec les données et l'esthétique des axes
+  geom_bar(stat = "identity", fill = "#E6AB02", color = "black") +  # Ajout des barres empilées avec des couleurs spécifiées
+  labs(
+    title = "Répartition des langues des publications SHS sur la maladie d'Alzheimer",  # Ajout d'un titre au graphique
+    x = "Langue",  # Nom de l'axe des x
+    y = "Nombre de publications",  # Nom de l'axe des y
+  ) +
+  geom_text(aes(label = n), vjust = -0.5, color = "black", size = 3, fontface="bold") +  # Ajout des étiquettes de données au-dessus des barres
+  theme_minimal() +  # Utilisation d'un thème minimal pour le graphique
+  theme(axis.text.x = element_text(hjust = 1))  # Ajustement de l'emplacement du texte de l'axe des x
+
+```
+
+A partir des textes des publications au sein des revues portant sur la thématique de l’Alzheimer, on peut distinguer les différentes langues.
+
+Alors que le nettoyage réalisé plus haut sur les langues nous montrait leur petite diversité (plus de 5 sur l’ensemble des données), celle-ci se réduit drastiquement lorsqu’il s’agit de publications dans une revue. Les articles sont en anglais principalement, puis en français. Il n’y en a qu’un en portugais.
+
+On peut penser que HAL est davantage populaire dans la recherche francophone et anglophone. Tout en sachant que HAL ne permet pas de faire ces segmentations facilement et de manière pratique. En effet, il y a beaucoup d’erreurs de catégorisation. Des ressources en français se retrouvaient dans la partie anglaise et inversement.
+
+Il a fallut corriger ces erreurs manuellement.
 
 ### 6. Nuage de mots des titres des revues SHS
 
-Création d'un nuage de mots basé sur les titres des publications pour visualiser les termes les plus fréquents. Les mots "Alzheimer", "maladie" et "disease" sont exclus pour l'analyse.
+Nous allons créer un nuage de mots basé sur les titres des publications pour visualiser les termes les plus fréquents. Les mots "Alzheimer", "maladie" et "disease" sont exclus pour l'analyse.
 
 ```{r, include=FALSE}
 library(wordcloud) 
@@ -781,18 +916,38 @@ grid.text("Les mots-clés anglais les plus utilisés", x = 0.5, y = 0.98,
           gp = gpar(fontsize = 15, fontface = "bold"))
 ```
 
+En résumé, en approfondissant cet aspect linguistique, on a généré 2 nuages de mots à partir des termes utilisés dans les titres des publications.
+
+Il a été décidé de séparer les titres anglais de ceux français pour pouvoir comparer les 2. En excluant les mots “Alzheimer”, “maladie” et “disease”, ces deux graphiques nous montrent les termes les plus fréquents.
+
+Pour obtenir ce résultat lisible et interprétable, un nettoyage était nécessaire pour enlever les nombres, la ponctuation, les stopwords (les “mots vides” comme les articles, conjonctions, etc...). On remarque qu’il reste toutefois certains mots qui ne sont pas toujours pertinents : “quand”, “chez”.
+
+Ce nettoyage des mots est assez fastidieux et demande une intervention en partie manuelle.
+
+Dans le nuage de mot français, on remarque que le terme “mild” est toujours présent. Pendant nos analyses, on avait remarqué que les anglicismes dans les titres français n’étaient pas détectés et apparaissent donc dans notre nuage de mots français. Il est pertinent de les garder puisqu’ils sont utilisés en français.
+
+D’autres mots anglais pouvaient apparaître malgré le filtrage de la langue, dû au fait que certains auteurs mettent leur titre en français et en anglais.
+
+Dans ce cas, il est nécessaire d’avoir recourt à un nettoyage manuel, parfois au cas par cas.
+
+En comparant ces deux graphiques, on peut voir que du côté francophone, le terme “personnes” est au même niveau que “cognitive” et “memory”. Ceci peut montrer que la recherche francophone s’intéresse avant tout à l’individu ou aux personnes aidant les malades. Tandis que la recherche anglaise explore les phénomènes relatifs au cerveau.
+
+Les termes équivalents en français : “cognitive” et “mémoire” n’apparaissent qu’en 4ème position sur le nuage de mots. Avant cela, les mots “troubles” et “aidants” sont davantage récurrents. Puis, en rose, des mots comme “diagnostic”, “prise”, “clinique”, “éthique” laissent penser que la recherche francophone se concentre davantage sur l’accompagnement et la gestion des personnes atteintes de la maladie d’Alzheimer. Du côté anglophone, les termes qui ressortent sont relatifs à l’aspect concret de la maladie, ce qui se passe de manière technique et scientifique chez les personnes concernées par cette maladie.
+
 ### 7. Les institutions les plus actives dans la publications des articles des revues SHS
 
-Nous allons supprimer les NA dans journalPublisher_s. Il faut les supprimer dans cette étape et non pas lors du nettoyage pour garder les lignes qui servent pour d'autres analyses.
+Pour identifier les institutions les plus actives dans la publication d'articles dans le domaine des sciences humaines et sociales (SHS) concernant la maladie d'Alzheimer, nous allons analyser les données de nos revues.
+
+Nous allons supprimer les valeurs manquantes (NA) dans la colonne **`journalPublisher_s`** à cette étape plutôt que lors du nettoyage ultérieur. En procédant ainsi, nous nous assurons de conserver les lignes nécessaires à d'autres analyses tout en éliminant les données manquantes spécifiquement dans le contexte de la colonne des éditeurs (**`journalPublisher_s`**)
 
 ```{r, include=TRUE}
 revues_shs_alzheimer <- revues_shs_alzheimer %>%
   filter(!is.na(journalPublisher_s))
 ```
 
--   Cette ligne de code utilise la fonction **`filter`** pour exclure les lignes où la colonne **`journalPublisher_s`** a des valeurs **`NA`**. Cela nettoie le dataframe en retirant les observations avec des valeurs manquantes dans la colonne spécifiée.
+Cette ligne de code utilise la fonction **`filter`** pour exclure les lignes où la colonne **`journalPublisher_s`** a des valeurs **`NA`**. Cela nettoie le dataframe en retirant les observations avec des valeurs manquantes dans la colonne spécifiée.
 
-    Nous allons maintenant sélectionner le top 10 des institutions de revue les plus actifs:
+Nous allons maintenant sélectionner le top 10 des institutions de revue les plus actifs:
 
 ```{r, include=FALSE}
 top_institutions <- revues_shs_alzheimer %>%
@@ -818,7 +973,7 @@ ggplot(top_institutions, aes(x = n, y = fct_reorder(journalPublisher_s, n))) +
   theme_minimal()
 ```
 
-# Interprétations des résultats
+L’institution la plus active sur le sujet montre deux fois plus de publications avec celle en deuxième position. Il s’agit d’une grande maison d’édition installée depuis plusieurs siècles. On peut imaginer que les financements sont plus conséquents que parmi d’autres institutions ce qui lui permet d’être très présente dans le domaine.
 
 # Création d'un taggage via Zotero
 
