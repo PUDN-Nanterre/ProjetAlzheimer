@@ -71,7 +71,7 @@ library(textcat) #  Classification automatique de texte
 
 # Présentation HAL
 
-# Extraction à partir de l'API
+# Extraction des données à partir de l'API
 
 Reprendre la méthodo de Abir Gabriel en la modifiant ?
 
