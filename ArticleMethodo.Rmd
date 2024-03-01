@@ -16,11 +16,11 @@ Ce projet du cours de Gestion de projet de la formation en Information et Commun
 
 Le succès d'une analyse de données en R dépend souvent de l'utilisation des librairies appropriées. Les librairies fournissent des fonctions, des outils et des méthodes spécifiques qui facilitent la manipulation des données, la visualisation et l'analyse statistique. Dans ce guide, nous allons utiliser plusieurs librairies, parmi lesquelles, on retrouve :
 
-#### **1. Librairie permettant le chargement des données :**
+### **1. Librairie permettant le chargement des données**
 
 -   **Readr :** Utilisée pour lire et charger des données tabulaires à partir de fichiers plats, offrant une méthode efficace pour **importer des données dans R.**
 
-#### **2. Librairie de nettoyage de données :**
+### **2. Librairies de nettoyage de données**
 
 -   **Labelled :** Utile pour **travailler avec des données étiquetées**.
 
@@ -28,11 +28,11 @@ Le succès d'une analyse de données en R dépend souvent de l'utilisation des l
 
 -   **Textcat** : Détecte la langue d'un document textuel. Elle est basée sur des modèles de langage statistiques pour déterminer la probabilité qu'un document soit écrit dans une langue spécifique.
 
-#### **3. Statistiques descriptives rapides :**
+### **3. Librairie de statistiques descriptives rapides**
 
 -   **Skimr :** Génère des statistiques descriptives rapides pour l'ensemble du jeu de données, offrant un **aperçu rapide des variables et de leur distribution.**
 
-#### **4. Manipulation et visualisation des données :**
+### **4. Librairies de manipulation et visualisation des données**
 
 -   **Tidyverse :** Collection de librairies (ggplot2, dplyr, tidyr, etc.) pour **le nettoyage, la manipulation et la visualisation des données**. Adoptez une approche cohérente et "propre" de l'analyse des données.
 
@@ -46,7 +46,7 @@ Le succès d'une analyse de données en R dépend souvent de l'utilisation des l
 
 -   **RColorBrewer et Viridis :** Fournissent des **palettes de couleurs** pour les visualisations graphiques, améliorant la lisibilité et l'esthétique des graphiques.
 
-#### **5. Prétraitement du texte :**
+### **5. Librairie de prétraitement du texte**
 
 -   **TM (Text Mining) et SnowballC :** Utilisées pour le prétraitement du texte, notamment pour la création d'un corpus et le **nettoyage des données textuelles.**
 
@@ -99,6 +99,8 @@ dataset_alzheimer <- read.csv("AlzheimerHAL.csv")
 ```
 
 # Nettoyage des données
+
+Dans cette phase de nettoyage de données, nous débuterons en assignant des étiquettes à nos variables et à leurs modalités respectives. Ensuite, nous préparerons nos ensembles de données en vue de l'analyse, pour finalement les explorer en détail.
 
 ## Étiquetage des variables
 
@@ -153,6 +155,8 @@ var_label(dataset_alzheimer) <- list(
 
 Afin de rendre les modalités plus explicites, par exemple, pour le type et la langue du document, nous utilisons la fonction **`val_labels`** pour attribuer des libellés descriptifs aux niveaux des variables catégorielles.
 
+### **Étiquetage des types de documents**
+
 ```{r, include=TRUE}
 val_labels(dataset_alzheimer$docType_s) <- c(
   "Article dans une revue" = "ART", 
@@ -172,16 +176,7 @@ val_labels(dataset_alzheimer$docType_s) <- c(
 
 Ces étapes d'étiquetage des variables et des modalités **renforcent la compréhension du jeu de données et minimisent les risques de mauvaises interprétations** lors de l'analyse ultérieure.
 
-Et pour finir cette partie, nous allons générer une table présentant les fréquences de chaque type de documents dans notre dataframe. Le but étant d'avoir une vie d'ensemble sur la distribution de ces types.
-
-```{r, include=TRUE}
-
-# Affichage des fréquences des types de documents
-freq(dataset_alzheimer$docType_s, sort = "dec", valid = FALSE, total = TRUE) %>% knitr::kable(caption = "Types de documents présents dans le corpus")
-
-```
-
-**Langue :**
+### **Étiquetage de langue**
 
 Comme déjà fait avant, dans cette partie du code liées aux données de langue, nous allons encore utiliser la fonction 'val_labels' pour attribuer des étiquettes aux codes de langues.
 
@@ -197,23 +192,13 @@ val_labels(dataset_alzheimer$language_s) <- c(
   "Ukrainien" = "uk")
 ```
 
-```{r, include=TRUE}
-# Affichage des fréquences des langues dans le corpus
-freq(dataset_alzheimer$language_s, sort = "dec", valid = FALSE, total = TRUE) %>% 
-  knitr::kable(caption = "Langue du document")
-```
+### **Étiquetage des domaines**
 
-**Domaines :**
+Avant de donner des étiquettes aux domaines, nous allons d'abord agréger les données liées à ces derniers, pour les catégoriser et les assembler pertinemment.
 
-Maintenant, nous souhaitons afficher les codes domaines les plus fréquents dans le jeux de données. Pour ce faire, nous allons utiliser encore une fois la fonction **`freq()`**
+#### **a) Agrégation des données liées aux domaines**
 
-```{r, include=TRUE}
-freq(dataset_alzheimer$primaryDomain_s, sort = "dec", valid = FALSE, total = TRUE) %>% 
-  head(20) %>% 
-  knitr::kable(caption = "Domaines primaires détaillés (les 20 plus fréquents)")
-```
-
-On créé une variable `domaine_gpe`pour les regrouper les domaines.
+Nous allons créé une variable `domaine_gpe`pour les regrouper les domaines.
 
 Nous avons défini une expression régulière (**`"^chim|^info|^math|^phys|^scco|^sde|^sdu|^sdv|^shs|^spi|^stat"`**) qui spécifie les motifs que nous cherchons.
 
@@ -235,7 +220,9 @@ Maintenant, nous allons créer la colonne en question. Dans notre code, on spéc
 dataset_alzheimer$domaine_gpe <- str_extract(dataset_alzheimer$primaryDomain_s, pattern = mots)
 ```
 
-Nous allons ajouté des étiquettes aux modalités de la variable nouvellement créée, **`domaine_gpe`** :
+#### **b) Attribution des étiquettes aux domaines**
+
+Nous allons ajouter des étiquettes aux modalités de la variable nouvellement créée, **`domaine_gpe`** :
 
 ```{r, include=TRUE}
 
@@ -255,15 +242,6 @@ val_labels(dataset_alzheimer$domaine_gpe) <- c(
   "Statistiques [stat]" = "stat")
 ```
 
-Et pour finir, obtenir les fréquences de la nouvelle variable :
-
-```{r, include=TRUE}
-
-#Création d'un tableau de fréquence
-freq(dataset_alzheimer$domaine_gpe, sort = "dec", valid = FALSE) %>% 
-  knitr::kable(caption = "Domaines primaires regroupés")
-```
-
 On sauvegarde les données et leur configuration dans le fichier "AlzheimerHAL.Rda" qui sera utilisé pour faire les analyses.
 
 ```{r, include=TRUE}
@@ -274,19 +252,19 @@ save(dataset_alzheimer, file = "AlzheimerHAL.Rda")
 
 ## Préparation des datasets spécifiques pour faire des analyses
 
--   [Étape 1:]{.underline} Préparation du dataset général
+Pour préparer les datasets que nous allons analyser et étudier, nous allons passer essentiellement par deux étapes :
+
+-   [**Étape 1:**]{.underline} Préparation du dataset général
 
 Dans cette étape, nous procéderons à la préparation du dataset général pour faire des visualisations sur les tendances générales.
 
--   [Étape 2:]{.underline} Création d'un sub-dataset spécialisé pour les revues
+-   [**Étape 2:**]{.underline} Création d'un sub-dataset spécialisé pour les revues
 
 Dans cette étape, nous créerons un sub-dataset spécifique qui se concentre exclusivement sur les publications de type "revues". Cela permettra une analyse plus approfondie et ciblée sur ce sous-ensemble de données, facilitant ainsi l'extraction d'informations spécifiques liées aux revues.
 
 -   [Etape 3]{.underline} : Enrichissement manuelle des données liées aux types de revues (cette étape viendra dans les analyses, car nous allons seulement enrichir le top20 des revues)
 
-### Étape 1
-
-Préparation du dataset général :
+### Étape 1 : Préparation du dataset général
 
 A partir du dataset initial, nous allons créer un sous-ensemble de données que nous allons appeler dataset_shs_alzheimer.
 
@@ -342,7 +320,7 @@ dataset_shs_alzheimer <- dataset_shs_alzheimer %>%
 
 ```
 
-### Étape 2
+### Étape 2 : Préparation du dataset de revues
 
 Cette étape consiste dans la création d'un dataset pour analyser les données liées aux revues.
 
@@ -464,9 +442,37 @@ table_journal_publisher <- table(revues_shs_alzheimer$journalPublisher_s)
 #print(table_journal_publisher)
 ```
 
-# Analyses pour répondre à nos questions
+# Exploration post-nettoyage
 
-# Interprétations des résultats
+Dans cette section dédiée à l'analyse des fréquences, nous allons explorer nos données nettoyées. L'objectif de cette étape est de mieux comprendre la distribution des valeurs dans certaines variables clés. En créant des tableaux de fréquence, nous pourrons identifier les tendances, les modalités les plus courantes, et détecter d'éventuelles anomalies.
+
+Pour afficher les fréquences, nous allons utiliser la fonction **`freq()`**qui permet d’obtenir les paramètres descriptifs des variables.
+
+## Fréquence des types de publications
+
+```{r, include=TRUE}
+
+# Affichage des fréquences des types de documents
+freq(dataset_alzheimer$docType_s, sort = "dec", valid = FALSE, total = TRUE) %>% knitr::kable(caption = "Types de documents présents dans le corpus")
+```
+
+## Fréquence de la langue
+
+```{r, include=TRUE}
+# Affichage des fréquences des langues dans le corpus
+freq(dataset_alzheimer$language_s, sort = "dec", valid = FALSE, total = TRUE) %>% 
+  knitr::kable(caption = "Langue du document")
+```
+
+## Fréquence des domaines
+
+```{r, include=TRUE}
+freq(dataset_alzheimer$primaryDomain_s, sort = "dec", valid = FALSE, total = TRUE) %>% 
+  head(20) %>% 
+  knitr::kable(caption = "Domaines primaires détaillés (les 20 plus fréquents)")
+```
+
+# Analyses et Interprétations des résultats
 
 ### 1. Tendances annuelles de publications
 
@@ -934,7 +940,7 @@ En comparant ces deux graphiques, on peut voir que du côté francophone, le ter
 
 Les termes équivalents en français : “cognitive” et “mémoire” n’apparaissent qu’en 4ème position sur le nuage de mots. Avant cela, les mots “troubles” et “aidants” sont davantage récurrents. Puis, en rose, des mots comme “diagnostic”, “prise”, “clinique”, “éthique” laissent penser que la recherche francophone se concentre davantage sur l’accompagnement et la gestion des personnes atteintes de la maladie d’Alzheimer. Du côté anglophone, les termes qui ressortent sont relatifs à l’aspect concret de la maladie, ce qui se passe de manière technique et scientifique chez les personnes concernées par cette maladie.
 
-### 7. Les institutions les plus actives dans la publications des articles des revues SHS
+### 7. Les institutions les plus actives dans la publication des articles des revues SHS
 
 Pour identifier les institutions les plus actives dans la publication d'articles dans le domaine des sciences humaines et sociales (SHS) concernant la maladie d'Alzheimer, nous allons analyser les données de nos revues.
 
