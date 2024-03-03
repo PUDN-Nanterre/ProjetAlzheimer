@@ -144,8 +144,7 @@ Dans cette phase de nettoyage de données, nous débuterons en assignant des ét
 
 ### 1. Étiquetage des variables
 
-Les noms des variables du dataframe sont identiques aux champs sélectionnés lors de l’export depuis l’API. Pour une meilleure compréhension et documentation, nous utilisons la fonction `var_label` du package `labelled` pour ajouter des étiquettes informatives à chaque variable.
-
+Les noms des variables du dataframe sont identiques aux champs sélectionnés lors de l'export depuis l'API. Pour une meilleure compréhension et lisibilité, nous ajoutons des étiquettes informatives à chaque variable en utilisant la fonction `var_label` du package `labelled`.
 
 ```{r, include=FALSE}
 # Affichage des noms des variables
@@ -189,16 +188,16 @@ var_label(dataset_alzheimer) <- list(
   fr_abstract_s = "Résumé en français")
 ```
 
-Un mot ajouté après '_' (souligne) signifie le type de chaque colonne.  
+Des caractères ont été rajoutées à la fin de certains mots, après le séparateur  
 - '_i' : interger (entier)  
 - '_s', '_st' : string (chaîne de caractères)  
 - '_bool' : boolean (booléen)
 
 ### 2. Étiquetage des modalités
 
-Afin de rendre les modalités plus explicites, par exemple, pour le type et la langue du document, nous utilisons la fonction `var_label` pour attribuer des libellés descriptifs aux niveaux des variables catégorielles.
-
 #### **Étiquetage des types de documents** 
+
+De la même manière, pour rendre les modalités plus explicites et compréhensibles, nous attribuons des libellés plus descriptifs pour les types de documents.
 
 ```{r, include=TRUE}
 val_labels(dataset_alzheimer$docType_s) <- c(
@@ -219,9 +218,9 @@ val_labels(dataset_alzheimer$docType_s) <- c(
 
 Ces étapes d’étiquetage des variables et des modalités **renforcent la compréhension du jeu de données et minimisent les risques de mauvaises** interprétations lors de l’analyse ultérieure.
 
-#### **Étiquetage de langue**
+#### **Étiquetage de la langue**
 
-Comme déjà fait avant, dans cette partie du code liées aux données de langue, nous allons encore utiliser la fonction `val_labels` pour attribuer des étiquettes aux codes de langues.
+Nous renommons les langues pour avoir le mot en entier.
 
 ```{r, include=TRUE}
 val_labels(dataset_alzheimer$language_s) <- c(
@@ -234,7 +233,7 @@ val_labels(dataset_alzheimer$language_s) <- c(
 ```
 
 #### **Étiquetage des domaines**  
-Avant de donner des étiquettes aux domaines, nous allons d’abord agréger les données liées à ces derniers, pour les catégoriser et les assembler pertinemment.
+Pour les domaines, nous leur attribuons des étiquettes et nous les agrégeons pour créer des catégories plus larges.
 
 #### a) Agrégation des données liées aux domaines
 
@@ -300,7 +299,7 @@ Dans cette étape, nous créerons un sub-dataset spécifique qui se concentre ex
 
 A partir du dataset initial, nous allons créer un sous-ensemble de données que nous allons appeler dataset_shs_alzheimer.
 
-Notre filtrage des lignes est basé sur des conditions spécifiques : la fonction str_detect nous permettra de rechercher le motif “shs” ou “ssh” dans la colonne domain_s ou la colonne primaryDomain_s, avec la conversion en minuscules pour rendre la recherche insensible à la casse.
+Pour certaines de nos analyses, nous nous intéressons à l’ensemble des données afin de visualiser des tendances générales. Cependant, ces recherchent portent sur le domaine des Sciences Humaines et Sociales (SHS). Grâce à notre nettoyage précédent, nous pouvons chercher et sélectionner uniquement les sources catégorisées comme SHS ou “SSH” (en anglais) dans la variable de domaine.
 
 ```{r, include=TRUE}
 
@@ -370,9 +369,7 @@ Nous avons 394 publications de revues.
 
 **LANGUES**
 
-Nous allons nettoyer la colonne de langue dans notre mini-dataset des revues. Nous allons uniquement effectuer le nettoyage de la langue ici, car notre analyse linguistique est spécifiquement axée sur les revues. Il est important de noter que nous avons choisi de nettoyer la colonne de langue en raison d'erreurs potentielles liées à la saisie des données sur HAL.
-
-Les publications sont répertoriées dans différentes langues selon la langue du texte détectée. Cependant, de nombreuses erreurs apparaissent. Pour pallier ces confusions et pouvoir établir une répartition plus juste des contenus, nous devons comparer si la détection de la langue correspond à ce que nous indique la colonne de la langue. Si non, nous nettoyons à la main.
+Les publications sont répertoriées dans différentes langues selon la langue du texte détectée. Cependant, de nombreuses erreurs apparaissent. Pour pallier ces confusions et pouvoir établir une répartition plus juste des contenus, nous devons comparer si la détection de la langue correspond à ce que nous indique la colonne de la langue. Si non, nous nettoyons à la main. Nous allons uniquement effectuer le nettoyage de la langue ici, car notre analyse linguistique est spécifiquement axée sur les revues.
 
 Pour nettoyer nos données de langue, nous allons tout d'abord les afficher pour avoir une vue sur l'existant :
 
@@ -454,7 +451,7 @@ Nous rencontrons un obstacle pour les publications incluant
 - un titre qui contient des mots de langue étrangère au reste du titre (ex : le terme “care” utilisé dans un titre français)
 
 **ÉDITEURS**  
-Nous avons également observé une incohérence dans les lignes concernant les éditeurs. L'éditeur Elsevier est parfois écrit Elsevier Masson ou simplement Elservier. Nous allons donc mettre à jour la colonne 'journalPublisher_s'.
+Enfin, un nettoyage est nécéssaire sur les éditeurs. En effet, l’éditeur “Elsevier”  apparaît sous 2 formes : “Elsevier” et “Elsevier Masson”. Nous les regroupons sous un même terme. Nous allons donc mettre à jour la colonne ‘journalPublisher_s’
 
 Pour ce faire, nous allons utiliser la fonction **`mutate`** du package **`dplyr`** pour effectuer une transformation sur la colonne **`journalPublisher_s`** du dataframe **`revues_shs_alzheimer`**. La transformation est réalisée avec la fonction **`if_else`**, qui permet de remplacer les occurrences de "Elsevier" dans la colonne **`journalPublisher_s`** par "Elsevier Masson".
 
