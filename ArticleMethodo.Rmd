@@ -1,81 +1,62 @@
 ---
-title: "Gestion de projet (collaboration avec PUDN)"
+title: "Gestion de projet"
+subtitle : "- Collaboration avec PUDN"
 author: "Remaissa BENDIB, Hanjoon KO, Gracia YAN"
 date: "`r Sys.Date()`"
 output:
   html_document:
+    toc: true
+    toc_float: true
+    theme: readable
     df_print: paged
   pdf_document: default
 ---
+* **M2 Information Communication, Données et Société
+Université Paris Nanterre**
+
 
 # Introduction
 
-Ce projet du cours de Gestion de projet de la formation en Information et Communication à l’Université Paris Nanterre a pour objectif de collaborer avec des organisations françaises pour un projet spécifique. Notre projet, en collaboration avec PUDN (Plateforme Universitaire de Données de Nanterre), vise à gérer les recherches sur la maladie d'Alzheimer archivées sur HAL. En utilisant l'API de HAL, nous téléchargeons les données des articles et les nettoyons pour analyser les recherches sur la maladie ainsi que les revues dans lesquelles elles sont publiées.
+### Le projet
 
-### **Introduction aux librairies**
+Dans le cadre du cours de Gestion de projet dispensé en M2 Information Communication, nous travaillons avec la PUDN (Plateforme Universitaire des données numériques). Ce projet, en partenariat avec la Fondation Deniker, porte sur la maladie d’Alzheimer. En analysant les données présentes sur HAL, nous établissons un état des lieux des contenus, du référencement existant des publications et proposons une méthodologie à destination des étudiants. Notre objectif est de montrer les possibilités de HAL mais aussi ses limites, en guidant les étapes d’extraction de données à partir d’une API jusqu’à la visualisation de ces données, tout en passant par le nettoyage, le traitement, l’analyse.
 
-Le succès d'une analyse de données en R dépend souvent de l'utilisation des librairies appropriées. Les librairies fournissent des fonctions, des outils et des méthodes spécifiques qui facilitent la manipulation des données, la visualisation et l'analyse statistique. Dans ce guide, nous allons utiliser plusieurs librairies, parmi lesquelles, on retrouve :
+### Les outils utilisés
 
-### **1. Librairie permettant le chargement des données**
+Dans cette analyse, nous mobiliserons plusieurs outils :
 
--   **Readr :** Utilisée pour lire et charger des données tabulaires à partir de fichiers plats, offrant une méthode efficace pour **importer des données dans R.**
+-   L’API de HAL\
+    Pour récolter toutes les données nécessaires à notre projet.
 
-### **2. Librairies de nettoyage de données**
+-   RStudio\
+    Pour traiter, analyser et visualiser ces données.
 
--   **Labelled :** Utile pour **travailler avec des données étiquetées**.
+### Présentation HAL
 
--   **Stringr :** Offre des fonctionnalités avancées pour **la manipulation de chaînes de caractères,** particulièrement utile lors du nettoyage et de la préparation des données.
+Créée en 2001 à l’inititative du CNRS (Centre National de la Recherche Scientifique), HAL est une **plateforme numérique pluridisciplinaire** qui vise à centraliser des dépôts scientifiques (articles, thèses, rapports...) réalisés par des chercheurs afin d’en faciliter la diffusion, et le partage. La plateforme étant une **archive ouverte commune**, elle valorise la collaboration et le bien commun.
 
--   **Textcat** : Détecte la langue d'un document textuel. Elle est basée sur des modèles de langage statistiques pour déterminer la probabilité qu'un document soit écrit dans une langue spécifique.
+Les chercheurs peuvent publier eux-mêmes sur le site. Les contenus ne sont donc pas évalués en amont et sont archivés sur HAL que si une personne fait la démarche de publication.
 
-### **3. Librairie de statistiques descriptives rapides**
+C’est donc une immense **base de données**, alimentée par des chercheurs de toutes les disciplines, peu importe leur zone géographique, même si le portail n’est disponible qu’en français et en anglais.
 
--   **Skimr :** Génère des statistiques descriptives rapides pour l'ensemble du jeu de données, offrant un **aperçu rapide des variables et de leur distribution.**
+### Extraction des données
 
-### **4. Librairies de manipulation et visualisation des données**
+**Qu'est-ce qu'une API ?**
 
--   **Tidyverse :** Collection de librairies (ggplot2, dplyr, tidyr, etc.) pour **le nettoyage, la manipulation et la visualisation des données**. Adoptez une approche cohérente et "propre" de l'analyse des données.
+*“Une API (application programming interface ou « interface de programmation d’application ») est une interface logicielle qui permet de « connecter » un logiciel ou un service à un autre logiciel ou service afin d’échanger des données et des fonctionnalités.”* (CNIL)
 
--   **GGPlot2 :** Librairie de visualisation pour **créer une variété de graphiques et de diagrammes,** particulièrement utile pour représenter visuellement les tendances, les distributions et les relations dans les données.
+Pour résumer, l’API de HAL nous permet, entre autre, de connecter la base de données à notre interface de travail (pour notre cas RStudio). L’avantage d’une API est la mise à jour automatique de l’ensemble de la base de données dès qu’on le souhaite, sans avoir à faire une extraction manuelle avec les nouveaux contenus régulièrement.
 
--   **Ggrepel :** Extension de ggplot2 utilisée pour **éviter les chevauchements de texte dans les graphiques**, améliorant la lisibilité des étiquettes.
+Par exemple, notre base de données comprend l’ensemble des résultats de notre requête à partir du mot “Alzheimer”. Cependant, de nouvelles publications sont déposées sur HAL régulièrement. Il serait assez fastidieux et chronophage d’extraire tous ces résultats, manuellement, plusieurs fois par mois pour avoir un corpus complet et à jour.
 
--   **KableExtra :** Permet de **créer des tableaux personnalisables** en formatant les sorties de dataframes, particulièrement utile lors de la présentation des résultats.
+L’API nous permet donc de mettre à jour cette base de données et de récolter les nouvelles publications récentes directement lorsqu’on travaille sur RStudio.
 
--   **Wordcloud et Wordcloud2 :** Utilisées pour **générer des nuages de mots basés** sur les titres des publications, offrant une visualisation des termes les plus fréquemment utilisés.
+**Comment utiliser l’API de HAL ?**
 
--   **RColorBrewer et Viridis :** Fournissent des **palettes de couleurs** pour les visualisations graphiques, améliorant la lisibilité et l'esthétique des graphiques.
-
-### **5. Librairie de prétraitement du texte**
-
--   **TM (Text Mining) et SnowballC :** Utilisées pour le prétraitement du texte, notamment pour la création d'un corpus et le **nettoyage des données textuelles.**
-
-    En garantissant que nous avons installé et chargé ces librairies au début de notre projet, nous nous assurons d'avoir toutes les fonctionnalités nécessaires pour effectuer une analyse complète.
-
-```{r, include=FALSE}
-
-# Chargement des librairies nécessaires
-library(readr)      # Pour lire et charger des données tabulaires
-library(labelled)   # Pour travailler avec des données étiquetées
-library(questionr)  # Fournit des outils d'analyse de données en sciences sociales
-library(stringr)    # Pour la manipulation avancée de chaînes de caractères
-library(tidyverse)  # Collection de librairies (dplyr, ggplot2, tidyr) pour une analyse cohérente
-library(skimr)      # Génère des statistiques descriptives rapides pour l'ensemble du jeu de données
-library(ggplot2)    # Création de graphiques et de visualisations
-library(ggrepel)    # Évite les chevauchements de texte dans les graphiques
-library(kableExtra) # Personnalisation des tableaux
-library(wordcloud)   # Nuage de mots
-library(wordcloud2)  # Nuage de mots interactif
-library(textcat) #  Classification automatique de texte 
-```
-
-# Présentation HAL
-
-# Extraction des données à partir de l'API
-
-Reprendre la méthodo de Abir Gabriel en la modifiant ?
-
+⇒ Lien vers la méthodo faite par Abir Gabriel\
 <https://gitlab.huma-num.fr/bchauvel/biblioalzheimer/-/blob/main/1_Extraction/FicheMethode_requeteHAL.Rmd?ref_type=heads>
+
+**Extraction des données**
 
 Pour mener à bien notre analyse, nous commençons par extraire des données pertinentes à partir de l'API HAL. Ce dernier est une ressource centralisée regroupant des publications scientifiques en libre accès.
 
@@ -98,25 +79,82 @@ download.file(url, destfile = "AlzheimerHAL.bib")
 dataset_alzheimer <- read.csv("AlzheimerHAL.csv")
 ```
 
-# Nettoyage des données
+### Librairies
+
+Le succès d'une analyse de données en R dépend souvent de l'utilisation des librairies appropriées. Les librairies fournissent des fonctions, des outils et des méthodes spécifiques qui facilitent la manipulation des données, la visualisation et l'analyse statistique. Dans ce guide, nous allons utiliser plusieurs librairies, parmi lesquelles, on retrouve :
+
+#### a) Librairie permettant le chargement des données
+
+-   **Readr :** Utilisée pour lire et charger des données tabulaires à partir de fichiers plats, offrant une méthode efficace pour **importer des données dans R.**
+
+#### b) Librairies de nettoyage de données
+
+-   **Labelled :** Utile pour **travailler avec des données étiquetées**.
+
+-   **Stringr :** Offre des fonctionnalités avancées pour **la manipulation de chaînes de caractères,** particulièrement utile lors du nettoyage et de la préparation des données.
+
+-   **Textcat** : Détecte la langue d'un document textuel. Elle est basée sur des modèles de langage statistiques pour déterminer la probabilité qu'un document soit écrit dans une langue spécifique.
+
+#### c) Librairie de statistiques descriptives rapides
+
+-   **Skimr :** Génère des statistiques descriptives rapides pour l'ensemble du jeu de données, offrant un **aperçu rapide des variables et de leur distribution.**
+
+#### d) Librairies de manipulation et visualisation des données**
+
+-   **Tidyverse :** Collection de librairies (ggplot2, dplyr, tidyr, etc.) pour **le nettoyage, la manipulation et la visualisation des données**. Adoptez une approche cohérente et "propre" de l'analyse des données.
+
+-   **GGPlot2 :** Librairie de visualisation pour **créer une variété de graphiques et de diagrammes,** particulièrement utile pour représenter visuellement les tendances, les distributions et les relations dans les données.
+
+-   **Ggrepel :** Extension de ggplot2 utilisée pour **éviter les chevauchements de texte dans les graphiques**, améliorant la lisibilité des étiquettes.
+
+-   **KableExtra :** Permet de **créer des tableaux personnalisables** en formatant les sorties de dataframes, particulièrement utile lors de la présentation des résultats.
+
+-   **Wordcloud et Wordcloud2 :** Utilisées pour **générer des nuages de mots basés** sur les titres des publications, offrant une visualisation des termes les plus fréquemment utilisés.
+
+-   **RColorBrewer et Viridis :** Fournissent des **palettes de couleurs** pour les visualisations graphiques, améliorant la lisibilité et l'esthétique des graphiques.
+
+#### e) Librairie de prétraitement du texte**
+
+-   **TM (Text Mining) et SnowballC :** Utilisées pour le prétraitement du texte, notamment pour la création d'un corpus et le **nettoyage des données textuelles.**
+
+    En garantissant que nous avons installé et chargé ces librairies au début de notre projet, nous nous assurons d'avoir toutes les fonctionnalités nécessaires pour effectuer une analyse complète.
+
+
+```{r, include=FALSE}
+# Chargement des librairies nécessaires
+
+library(readr)      # Pour lire et charger des données tabulaires
+library(labelled)   # Pour travailler avec des données étiquetées
+library(questionr)  # Fournit des outils d'analyse de données en sciences sociales
+library(stringr)    # Pour la manipulation avancée de chaînes de caractères
+library(tidyverse)  # Collection de librairies (dplyr, ggplot2, tidyr) pour une analyse cohérente
+library(skimr)      # Génère des statistiques descriptives rapides pour l'ensemble du jeu de données
+library(ggplot2)    # Création de graphiques et de visualisations
+library(ggrepel)    # Évite les chevauchements de texte dans les graphiques
+library(kableExtra) # Personnalisation des tableaux
+library(wordcloud)   # Nuage de mots
+library(wordcloud2)  # Nuage de mots interactif
+library(textcat) #  Classification automatique de texte 
+```
+
+
+# Nettoyage
 
 Dans cette phase de nettoyage de données, nous débuterons en assignant des étiquettes à nos variables et à leurs modalités respectives. Ensuite, nous préparerons nos ensembles de données en vue de l'analyse, pour finalement les explorer en détail.
 
-## Étiquetage des variables
+### 1. Étiquetage des variables
 
-Les noms des variables du dataframe sont identiques aux champs sélectionnés lors de l'export depuis l'API. Pour une meilleure compréhension et documentation, nous utilisons la fonction **`var_label`** du package **`labelled`** pour ajouter des étiquettes informatives à chaque variable.
+Les noms des variables du dataframe sont identiques aux champs sélectionnés lors de l’export depuis l’API. Pour une meilleure compréhension et documentation, nous utilisons la fonction `var_label` du package `labelled` pour ajouter des étiquettes informatives à chaque variable.
 
-```{r, include=TRUE}
 
+```{r, include=FALSE}
 # Affichage des noms des variables
 names(dataset_alzheimer)
 ```
 
-On ajoute des étiquettes aux noms de variables (avec le package labelled), pour les documenter et limiter les risques de mauvaises interprétations.
+Nous ajoutons des étiquettes aux noms de variables (avec le package `labelled`), pour les documenter et limiter les risques de mauvaises interprétations.
 
 ```{r, include=TRUE}
-
-# Ajout des étiquettes aux noms de variables
 var_label(dataset_alzheimer) <- list(
   docid = "Identifiant HAL du dépôt", 
   publicationDateY_i = "Date de publication : année", 
@@ -151,11 +189,16 @@ var_label(dataset_alzheimer) <- list(
   fr_abstract_s = "Résumé en français")
 ```
 
-## Étiquetage des modalités
+Un mot ajouté après '_' (souligne) signifie le type de chaque colonne.  
+- '_i' : interger (entier)  
+- '_s', '_st' : string (chaîne de caractères)  
+- '_bool' : boolean (booléen)
 
-Afin de rendre les modalités plus explicites, par exemple, pour le type et la langue du document, nous utilisons la fonction **`val_labels`** pour attribuer des libellés descriptifs aux niveaux des variables catégorielles.
+### 2. Étiquetage des modalités
 
-### **Étiquetage des types de documents**
+Afin de rendre les modalités plus explicites, par exemple, pour le type et la langue du document, nous utilisons la fonction `var_label` pour attribuer des libellés descriptifs aux niveaux des variables catégorielles.
+
+#### **Étiquetage des types de documents** 
 
 ```{r, include=TRUE}
 val_labels(dataset_alzheimer$docType_s) <- c(
@@ -174,15 +217,13 @@ val_labels(dataset_alzheimer$docType_s) <- c(
   "Vidéo" = "VIDEO")
 ```
 
-Ces étapes d'étiquetage des variables et des modalités **renforcent la compréhension du jeu de données et minimisent les risques de mauvaises interprétations** lors de l'analyse ultérieure.
+Ces étapes d’étiquetage des variables et des modalités **renforcent la compréhension du jeu de données et minimisent les risques de mauvaises** interprétations lors de l’analyse ultérieure.
 
-### **Étiquetage de langue**
+#### **Étiquetage de langue**
 
-Comme déjà fait avant, dans cette partie du code liées aux données de langue, nous allons encore utiliser la fonction 'val_labels' pour attribuer des étiquettes aux codes de langues.
+Comme déjà fait avant, dans cette partie du code liées aux données de langue, nous allons encore utiliser la fonction `val_labels` pour attribuer des étiquettes aux codes de langues.
 
 ```{r, include=TRUE}
-
-# Étiquetage des langues
 val_labels(dataset_alzheimer$language_s) <- c(
   "Allemand" = "de", 
   "Anglais" = "en", 
@@ -192,41 +233,32 @@ val_labels(dataset_alzheimer$language_s) <- c(
   "Ukrainien" = "uk")
 ```
 
-### **Étiquetage des domaines**
+#### **Étiquetage des domaines**  
+Avant de donner des étiquettes aux domaines, nous allons d’abord agréger les données liées à ces derniers, pour les catégoriser et les assembler pertinemment.
 
-Avant de donner des étiquettes aux domaines, nous allons d'abord agréger les données liées à ces derniers, pour les catégoriser et les assembler pertinemment.
+#### a) Agrégation des données liées aux domaines
 
-#### **a) Agrégation des données liées aux domaines**
+Nous allons créer une variable `domaine_gpe`pour les regrouper les domaines.
 
-Nous allons créé une variable `domaine_gpe`pour les regrouper les domaines.
-
-Nous avons défini une expression régulière (**`"^chim|^info|^math|^phys|^scco|^sde|^sdu|^sdv|^shs|^spi|^stat"`**) qui spécifie les motifs que nous cherchons.
-
-Chaque motif commence par le symbole **`^`** indiquant le début de la chaîne de caractères, suivi d'une abréviation de domaine (par exemple, **`chim`** pour chimie, **`info`** pour informatique, etc.).
-
-Ces motifs sont regroupés avec le symbole **`|`**, qui fonctionne comme un "OU". Ainsi, la recherche correspond à des chaînes qui commencent par l'une des abréviations spécifiées.
+Nous définissons une expression régulière (**`"^chim|^info|^math|^phys|^scco|^sde|^sdu|^sdv|^shs|^spi|^stat"`**) qui spécifie les motifs que nous cherchons. Chaque motif commence par le symbole **`^`** indiquant le début de la chaîne de caractères, suivi d'une abréviation de domaine. (Ex. “Informatique” remplace “info”). Ces motifs sont regroupés avec le symbole **`|`**, qui fonctionne comme un "OU". Ainsi, la recherche correspond à des chaînes qui commencent par l'une des abréviations spécifiées.
 
 ```{r, include=TRUE}
 mots <- "^chim|^info|^math|^phys|^scco|^sde|^sdu|^sdv|^shs|^spi|^stat"
 ```
 
-Cette partie du code prépare la création d'une variable **`domaine_gpe`** en extrayant les débuts de chaînes de caractères basés sur des critères spécifiques. Le but étant de regrouper les domaines en catégories plus larges en fonction de leurs abréviations.
+Cette partie du code prépare la création d’une variable `domaine_gpe` en extrayant les débuts de chaînes de caractères basés sur des critères spécifiques. Le but étant de regrouper les domaines en catégories plus larges en fonction de leurs abréviations.
 
-Maintenant, nous allons créer la colonne en question. Dans notre code, on spécifie que notre colonne contient les résultats de l'extraction des motifs spécifiés (**`pattern = mots`**) de la colonne existante **`primaryDomain_s`** (qui représente les domaines primaires).
+Maintenant, nous allons créer la colonne `domaine_gpe` en question. Dans notre code, on spécifie que notre colonne contient les résultats de l'extraction des motifs spécifiés (`pattern = mots`) de la colonne existante `primaryDomain_s` (qui représente les domaines primaires).
 
 ```{r, include=TRUE}
-
-#Création de nouvelle colonne
 dataset_alzheimer$domaine_gpe <- str_extract(dataset_alzheimer$primaryDomain_s, pattern = mots)
 ```
 
-#### **b) Attribution des étiquettes aux domaines**
+#### b) Attribution des étiquettes aux domaines
 
-Nous allons ajouter des étiquettes aux modalités de la variable nouvellement créée, **`domaine_gpe`** :
+Nous allons ajouter des étiquettes aux modalités de la variable nouvellement créée, `domaine_gpe` :
 
 ```{r, include=TRUE}
-
-#Ajout des étiquettes aux modalités de domaine_gpe
 val_labels(dataset_alzheimer$domaine_gpe) <- c( 
   "Chimie" = "chim", 
   "Informatique [cs]" = "info", 
@@ -242,15 +274,13 @@ val_labels(dataset_alzheimer$domaine_gpe) <- c(
   "Statistiques [stat]" = "stat")
 ```
 
-On sauvegarde les données et leur configuration dans le fichier "AlzheimerHAL.Rda" qui sera utilisé pour faire les analyses.
+Les données et leur configuration sont sauvegardées dans le fichier "AlzheimerHAL.Rda" qui sera utilisé pour les analyses.
 
 ```{r, include=TRUE}
-
-#Sauvegarde du jeux de données dans un fichier Rda
 save(dataset_alzheimer, file = "AlzheimerHAL.Rda")
 ```
 
-## Préparation des datasets spécifiques pour faire des analyses
+### 3. Préparation des datasets
 
 Pour préparer les datasets que nous allons analyser et étudier, nous allons passer essentiellement par deux étapes :
 
@@ -258,51 +288,44 @@ Pour préparer les datasets que nous allons analyser et étudier, nous allons pa
 
 Dans cette étape, nous procéderons à la préparation du dataset général pour faire des visualisations sur les tendances générales.
 
--   [**Étape 2:**]{.underline} Création d'un sub-dataset spécialisé pour les revues
+-    [**Étape 2:**]{.underline} Préparation d’un dataset spécialisé pour les revues
 
-Dans cette étape, nous créerons un sub-dataset spécifique qui se concentre exclusivement sur les publications de type "revues". Cela permettra une analyse plus approfondie et ciblée sur ce sous-ensemble de données, facilitant ainsi l'extraction d'informations spécifiques liées aux revues.
+Dans cette étape, nous créerons un sub-dataset spécifique qui se concentre exclusivement sur les publications de type “revues”. Cela permettra une analyse plus approfondie et ciblée sur ce sous-ensemble de données, facilitant ainsi l’extraction d’informations spécifiques liées aux revues.
 
--   [Etape 3]{.underline} : Enrichissement manuelle des données liées aux types de revues (cette étape viendra dans les analyses, car nous allons seulement enrichir le top20 des revues)
 
-### Étape 1 : Préparation du dataset général
+-   [Étape 3]{.underline} : Enrichissement manuelle des données liées aux types de revues (cette étape viendra dans les analyses, car nous allons seulement enrichir le top20 des revues)
+
+
+#### Étape 1 : Préparation d’un dataset général
 
 A partir du dataset initial, nous allons créer un sous-ensemble de données que nous allons appeler dataset_shs_alzheimer.
 
-Notre filtrage des lignes est basé sur des conditions spécifiques : la fonction str_detect nous permettra de rechercher le motif "shs" ou "ssh" dans la colonne domain_s ou la colonne primaryDomain_s, avec la conversion en minuscules pour rendre la recherche insensible à la casse.
+Notre filtrage des lignes est basé sur des conditions spécifiques : la fonction str_detect nous permettra de rechercher le motif “shs” ou “ssh” dans la colonne domain_s ou la colonne primaryDomain_s, avec la conversion en minuscules pour rendre la recherche insensible à la casse.
 
 ```{r, include=TRUE}
 
 dataset_shs_alzheimer <- dataset_alzheimer %>%
-  
-  # Filtrage des lignes basé sur des conditions spécifiques
-  filter(
-    # Utilisation de str_detect pour rechercher le motif "shs" ou "ssh" dans la colonne domain_s
-    # ou la colonne primaryDomain_s, avec la conversion en minuscules pour rendre la recherche insensible à la casse
-    str_detect(tolower(domain_s), "shs|ssh") |
+  filter(str_detect(tolower(domain_s), "shs|ssh") |
       str_detect(tolower(primaryDomain_s), "shs|ssh")
   )
 
+# Utilisation de str_detect pour rechercher le motif "shs" ou "ssh" dans la colonne domain_s
+# ou la colonne primaryDomain_s, avec la conversion en minuscules pour rendre la recherche insensible à la casse
 ```
 
-Toujours dans l'optique de nettoyer nos données, vu que nous avons plusieurs types de publications, nous allons rassembler certaines avec d'autres.
+Toujours dans l’optique de nettoyer nos données, vu que nous avons plusieurs types de publications, nous allons rassembler certaines avec d’autres.
 
 Nous allons donc agréger nos données liées aux types de publications.
 
 Les principales modifications incluent :
 
--   Regrouper "ISSUE" avec "ART" dans la catégorie "Article dans une revue".
-
--   Regrouper "PROCEEDINGS" avec "COMM" dans la catégorie "Communication dans un congrès".
-
--   Regrouper "HDR" avec "THESE".
-
--   Regrouper "UNDEFINED" avec d'autres catégories d'"Autre publication scientifique".
-
+-   Regrouper "ISSUE" avec "ART" dans la catégorie "Article dans une revue".  
+-   Regrouper "PROCEEDINGS" avec "COMM" dans la catégorie "Communication dans un congrès".  
+-   Regrouper "HDR" avec "THESE".  
+-   Regrouper "UNDEFINED" avec d'autres catégories d'"Autre publication scientifique".  
 -   Regrouper "COUV" avec "Ouvrages".
 
 ```{r, include=TRUE}
-
-# Agréger les données dans la colonne docType_s
 dataset_shs_alzheimer <- dataset_shs_alzheimer %>%
   mutate(docType_s = case_when(
     docType_s %in% c("ART", "ISSUE") ~ "Article dans une revue",
@@ -320,18 +343,18 @@ dataset_shs_alzheimer <- dataset_shs_alzheimer %>%
 
 ```
 
-### Étape 2 : Préparation du dataset de revues
 
-Cette étape consiste dans la création d'un dataset pour analyser les données liées aux revues.
+#### Étape 2 : Préparation d’un dataset spécialisé pour les revues
+
+**REVUES**  
+L’API nous donnant toutes les informations des colonnes sélectionnées, nous avons des contenus qui ne nous intéresse pas pour notre recherche. Afin de se concentrer seulement sur les informations relatives aux revues SHS, nous créons un sous dataset.
+
+Grâce à notre agrégation précédente, nous avons toutes les données des articles de revues réunies.
 
 ```{r, include=TRUE}
-
-#Affichage des données liées aux types de documents
 unique_doctype <- unique(dataset_shs_alzheimer$docType_s) 
 print(unique_doctype)
 ```
-
-Vu que nous souhaitons nous concentrer sur les revues SHS, nous allons donc créer un nouveau dataset qui prend seulement les données liées aux revues.
 
 Nous allons tout d'abord filtrer le jeu de données shs pour inclure uniquement les lignes où docType_s est "Article dans une revue" et où la colonne journalTitle_s contient les mots "Revue", "revue", "review" ou "Review" car il se peut que quelques revues ne soient pas indiquées comme étant des revues dans le type du document (undefined)
 
@@ -345,7 +368,11 @@ revues_shs_alzheimer <- dataset_shs_alzheimer %>%
 
 Nous avons 394 publications de revues.
 
+**LANGUES**
+
 Nous allons nettoyer la colonne de langue dans notre mini-dataset des revues. Nous allons uniquement effectuer le nettoyage de la langue ici, car notre analyse linguistique est spécifiquement axée sur les revues. Il est important de noter que nous avons choisi de nettoyer la colonne de langue en raison d'erreurs potentielles liées à la saisie des données sur HAL.
+
+Les publications sont répertoriées dans différentes langues selon la langue du texte détectée. Cependant, de nombreuses erreurs apparaissent. Pour pallier ces confusions et pouvoir établir une répartition plus juste des contenus, nous devons comparer si la détection de la langue correspond à ce que nous indique la colonne de la langue. Si non, nous nettoyons à la main.
 
 Pour nettoyer nos données de langue, nous allons tout d'abord les afficher pour avoir une vue sur l'existant :
 
@@ -359,11 +386,12 @@ print(language_counts)
 
 ```
 
+- *TEXTCAT*  
 Pour nettoyer notre colonne de langue, nous allons utiliser la librarie textcat. Cette librairie basée sur des modèles NLP pré-entrainés permet la détection automatique de la langue d'un texte. Il s'agit plus précisemment d'un N_gramm de la base de donnés pour 26 langues basé sur le corpus miltilingue de l'initiative Corpus Européen. Pour plus d'informations, visitez : (<https://cran.r-project.org/web/packages/textcat/textcat.pdf>)
 
 Notre approche consiste à détecter la langue du document à partir du titre, puis à la comparer avec la langue déjà saisie sur HAL (dans la colonne "language_s"). Nous procéderons ensuite à une vérification manuelle des données incohérentes, c'est-à-dire lorsque le résultat de la détection diffère de la langue enregistrée sur HAL. Cette vérification sera effectuée en consultant la publication en ligne pour assurer la précision des données.
 
-```{r, include=FALSE}
+```{r, include=TRUE}
 
 # Utilisation de la fonction textcat pour détecter la langue des titres d'articles
 revues_shs_alzheimer$language_verification <- sapply(revues_shs_alzheimer$title_s, textcat)
@@ -420,6 +448,12 @@ revues_shs_alzheimer <- revues_shs_alzheimer %>%
 
 ```
 
+Nous rencontrons un obstacle pour les publications incluant  
+
+- un titre en 2 langues différentes (ex: titre français mais aussi écrit en agnalis à la suite)
+- un titre qui contient des mots de langue étrangère au reste du titre (ex : le terme “care” utilisé dans un titre français)
+
+**ÉDITEURS**  
 Nous avons également observé une incohérence dans les lignes concernant les éditeurs. L'éditeur Elsevier est parfois écrit Elsevier Masson ou simplement Elservier. Nous allons donc mettre à jour la colonne 'journalPublisher_s'.
 
 Pour ce faire, nous allons utiliser la fonction **`mutate`** du package **`dplyr`** pour effectuer une transformation sur la colonne **`journalPublisher_s`** du dataframe **`revues_shs_alzheimer`**. La transformation est réalisée avec la fonction **`if_else`**, qui permet de remplacer les occurrences de "Elsevier" dans la colonne **`journalPublisher_s`** par "Elsevier Masson".
@@ -448,7 +482,7 @@ Dans cette section dédiée à l'analyse des fréquences, nous allons explorer n
 
 Pour afficher les fréquences, nous allons utiliser la fonction **`freq()`**qui permet d’obtenir les paramètres descriptifs des variables.
 
-## Fréquence des types de publications
+### Fréquence des types de publications
 
 ```{r, include=TRUE}
 
@@ -456,7 +490,7 @@ Pour afficher les fréquences, nous allons utiliser la fonction **`freq()`**qui 
 freq(dataset_alzheimer$docType_s, sort = "dec", valid = FALSE, total = TRUE) %>% knitr::kable(caption = "Types de documents présents dans le corpus")
 ```
 
-## Fréquence de la langue
+### Fréquence de la langue
 
 ```{r, include=TRUE}
 # Affichage des fréquences des langues dans le corpus
@@ -464,7 +498,7 @@ freq(dataset_alzheimer$language_s, sort = "dec", valid = FALSE, total = TRUE) %>
   knitr::kable(caption = "Langue du document")
 ```
 
-## Fréquence des domaines
+### Fréquence des domaines
 
 ```{r, include=TRUE}
 freq(dataset_alzheimer$primaryDomain_s, sort = "dec", valid = FALSE, total = TRUE) %>% 
@@ -472,9 +506,10 @@ freq(dataset_alzheimer$primaryDomain_s, sort = "dec", valid = FALSE, total = TRU
   knitr::kable(caption = "Domaines primaires détaillés (les 20 plus fréquents)")
 ```
 
+
 # Analyses et Interprétations des résultats
 
-### 1. Tendances annuelles de publications
+### 1. Les tendances annuelles de publications
 
 Pour avoir une idée globale de la recherche et de la popularité de HAL, il est intéressant d’explorer l’évolution temporelle des publications sur le sujet de la maladie d’Alzheimer dans le domaine qui nous intéresse : les Sciences Humaines et Sociales.
 
@@ -521,7 +556,7 @@ Il y a un pic de publications en 2012. Cette date marque la fin du Plan Alzheime
 
 Les articles de revues sont globalement le type de document qui y est le plus déposé.
 
-### 2. Analyse de la répartition des publications SHS
+### 2. La répartition des publications SHS (maj)
 
 Pour visualiser toutes ces publications sous un autre angle, il est possible de regrouper ces données pour avoir une image résumant la répartition totale de ces publications en SHS sans l’aspect temporel. Pour cela, l’analyse sera représentée sous forme de camembert et gagne en lisibilité grâce aux couleurs et aux étiquettes de pourcentage.
 
@@ -697,7 +732,7 @@ En ce qui concerne notre graphe, d’après les 20 revues les plus actives, les 
 
 En s’intéressant aux noms de ces revues, on remarque une récurrence de ce qui relève du domaine de la psychologie.
 
-### 4. Auteurs actifs
+### 4. Les auteurs les plus actifs (maj)
 
 Nous allons analyser les auteurs les plus actifs dans les revues SHS. Le but étant d'identifier les auteurs avec le plus grand nombre de publications sur Alzheimer.
 
@@ -811,7 +846,7 @@ La psychologie représente la discipline principale de la moitié de ces auteurs
 
 Il y a tout de même un aspect philosophique à travers un auteur ce qui montre la diversité, voire la complémentarité, des angles d’approche pour étudier la maladie d’Alzheimer.
 
-### 5. Répartition des langues des publications des revues
+### 5. La répartition des langues des publications (maj)
 
 Dans cette partie, nous explorons la diversité linguistique des publications dans le domaine des sciences humaines et sociales (SHS) liées à la maladie d'Alzheimer. L'analyse vise à comprendre la répartition des langues utilisées dans les revues académiques traitant de ce sujet spécifique.
 
@@ -852,7 +887,7 @@ On peut penser que HAL est davantage populaire dans la recherche francophone et 
 
 Il a fallut corriger ces erreurs manuellement.
 
-### 6. Nuage de mots des titres des revues SHS
+### 6. Les mots récurrents dans les titres de revus SHS (maj)
 
 Nous allons créer un nuage de mots basé sur les titres des publications pour visualiser les termes les plus fréquents. Les mots "Alzheimer", "maladie" et "disease" sont exclus pour l'analyse.
 
@@ -940,7 +975,7 @@ En comparant ces deux graphiques, on peut voir que du côté francophone, le ter
 
 Les termes équivalents en français : “cognitive” et “mémoire” n’apparaissent qu’en 4ème position sur le nuage de mots. Avant cela, les mots “troubles” et “aidants” sont davantage récurrents. Puis, en rose, des mots comme “diagnostic”, “prise”, “clinique”, “éthique” laissent penser que la recherche francophone se concentre davantage sur l’accompagnement et la gestion des personnes atteintes de la maladie d’Alzheimer. Du côté anglophone, les termes qui ressortent sont relatifs à l’aspect concret de la maladie, ce qui se passe de manière technique et scientifique chez les personnes concernées par cette maladie.
 
-### 7. Les institutions les plus actives dans la publication des articles des revues SHS
+### 7. Les institutions les plus actives (maj)
 
 Pour identifier les institutions les plus actives dans la publication d'articles dans le domaine des sciences humaines et sociales (SHS) concernant la maladie d'Alzheimer, nous allons analyser les données de nos revues.
 
@@ -981,8 +1016,10 @@ ggplot(top_institutions, aes(x = n, y = fct_reorder(journalPublisher_s, n))) +
 
 L’institution la plus active sur le sujet montre deux fois plus de publications avec celle en deuxième position. Il s’agit d’une grande maison d’édition installée depuis plusieurs siècles. On peut imaginer que les financements sont plus conséquents que parmi d’autres institutions ce qui lui permet d’être très présente dans le domaine.
 
-# Création d'un taggage via Zotero
-
-# Création d'une bibliographie sur Zotero
-
 # Conclusion
+
+Ce travail à partir de l’API de HAL nous a permis de voir la richesse d’informations qu’il est possible de mobiliser. Toutes ces données sont précieuses pour mener à bien des projets de recherches et permettent d’approfondir de nombreux sujets.
+
+Cependant, dans toutes les étapes de notre projet, nous avons été confrontés aux difficultés de lisbilité des données. En effet, des nettoyages sur plusieurs variables et à différents moments ont été plus que nécessaires pour bien comprendre les informations et pouvoir les rendre tout aussi compréhensibles dans la restitution de nos analyses. Une grande partie a été nettoyée à la main, ce qui est chronophage et fastidieux.
+
+Selon les projets, il est plus ou moins possible d’utiliser l’API sans avoir recours à un nettoyage profond, mais dans d’autres cas, il est impératif de passer par là pour obtenir des données propres et exploitables. Cela limite l’accessibilité des données pourtant très nombreuses dans cette immense base de données.
