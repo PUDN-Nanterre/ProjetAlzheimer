@@ -553,11 +553,11 @@ Il y a un pic de publications en 2012. Cette date marque la fin du Plan Alzheime
 
 Les articles de revues sont globalement le type de document qui y est le plus déposé.
 
-### 2. La répartition des publications SHS (maj)
+### 2. La répartition des publications SHS
 
-Pour visualiser toutes ces publications sous un autre angle, il est possible de regrouper ces données pour avoir une image résumant la répartition totale de ces publications en SHS sans l’aspect temporel. Pour cela, l’analyse sera représentée sous forme de camembert et gagne en lisibilité grâce aux couleurs et aux étiquettes de pourcentage.
+Pour visualiser toutes ces publications sous un autre angle, il est possible de regrouper ces données pour avoir une image résumant la répartition totale de ces publications en SHS sans l’aspect temporel.  
 
-Avant de créer le camambert, nous allons tout d'abord créer un résumé des comptes et pourcentages pour chaque catégorie docType_s :
+Avant de créer le camembert, nous allons tout d'abord créer un résumé des comptes et pourcentages pour chaque catégorie docType_s :
 
 ```{r, include=TRUE}
 
@@ -729,19 +729,17 @@ En ce qui concerne notre graphe, d’après les 20 revues les plus actives, les 
 
 En s’intéressant aux noms de ces revues, on remarque une récurrence de ce qui relève du domaine de la psychologie.
 
-### 4. Les auteurs les plus actifs (maj)
+### 4. Les auteurs les plus actifs
 
-Nous allons analyser les auteurs les plus actifs dans les revues SHS. Le but étant d'identifier les auteurs avec le plus grand nombre de publications sur Alzheimer.
+Il était intéressant de voir si des auteurs contribuaient beaucoup en publiant sur HAL.
 
-Nous allons sélectionner les colonnes essentielles pour faciliter notre analyse :
+Nous avons établi le classement des 10 des auteurs les plus actifs en leur ajoutant une discipline majeure d’après leurs informations présentes sur d’autres sites Internet.
 
-Il s'agit de : (docid, publicationDateY_i, docType_s, language_s, domain_s, primaryDomain_s, openAccess_bool, submitType_s, journalTitle_s, journalPublisher_s, authFullName_s, title_s, subTitle_s, citationRef_s, publicationDate_s).
-
-```{r, include=TRUE}
+```{r, include=FALSE}
 revues_shs_auteur <- revues_shs_alzheimer %>% select(1:14,26) 
 ```
 
-Nous allons distinguer les auteurs de chaque publication.
+En premier lieu, nous allons distinguer les auteurs de chaque publication.
 
 ```{r, include=TRUE}
 revues_shs_auteur$AutList <- strsplit(revues_shs_auteur$authFullName_s, ",")
@@ -791,6 +789,8 @@ top_10 <- head(top_aut, 10)
 
 Afin de comprendre les disciplines principales des dix auteurs, nous recherchons sur Internet leurs informations professionnelles et les ajouter dans une nouvelle colonne.
 
+HAL ne donne pas directement les informations relatives aux champs disciplinaires des auteurs. Cette recherche doit se faire manuellement et peut être assez contraignante si on cherche à représenter plus de 20 auteurs. De plus, un auteur peut avoir plusieurs disciplines majeures, ce qui est difficilement représentable sur le graphique.
+
 ```{r, include=TRUE}
 aut_discipline <- c("Psychologie", "Psychologie", "Gérontologie", "Gérontologie", "Gérontologie", "Gérontologie", "Psychologie", "Philosophie", "Psychologie", "Psychologie")
 
@@ -805,6 +805,13 @@ ggplot(top_10, aes(x = reorder(aut, -frequentation), y = frequentation, fill = D
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+**Disciplines**  
+
+La psychologie représente la discipline principale de la moitié de ces auteurs. Cela semble assez vraisemblable puisque nous avons remarqué précédemment que les revues en rapport avec la psychologie sont très présentes dans nos recherches. Cette discipline se place avant la gérontologie (l’étude du vieillissement), ce qui semble assez logique étant donné la maladie dont il est question.
+
+Il y a tout de même un aspect philosophique à travers un auteur ce qui montre la diversité, voire la complémentarité, des angles d’approche pour étudier la maladie d’Alzheimer.
+
+**Auteurs**  
 Mohamad El Haj, dans le domaine de psychologie, est l'auteur le plus actif avec 38 publications sur la maladie d'alzheimer. Entre les dix auteurs, cinq personnes contribuent au domaine de psychologie, quatre au gérontologie et un à la philosophie.
 
 Nous filtrons les cinq meilleurs auteurs et montrons les revues dans lesquelles ils ont écrit leurs recherches.
@@ -843,7 +850,7 @@ La psychologie représente la discipline principale de la moitié de ces auteurs
 
 Il y a tout de même un aspect philosophique à travers un auteur ce qui montre la diversité, voire la complémentarité, des angles d’approche pour étudier la maladie d’Alzheimer.
 
-### 5. La répartition des langues des publications (maj)
+### 5. La répartition des langues des publications
 
 Dans cette partie, nous explorons la diversité linguistique des publications dans le domaine des sciences humaines et sociales (SHS) liées à la maladie d'Alzheimer. L'analyse vise à comprendre la répartition des langues utilisées dans les revues académiques traitant de ce sujet spécifique.
 
@@ -876,17 +883,19 @@ ggplot(langue_pays_freq, aes(x = fct_reorder(language_s, n), y = n)) +  # Utilis
 
 ```
 
-A partir des textes des publications au sein des revues portant sur la thématique de l’Alzheimer, on peut distinguer les différentes langues.
-
+À partir des textes des publications au sein des revues portant sur la thématique de l’Alzheimer, on peut distinguer les différentes langues.
 Alors que le nettoyage réalisé plus haut sur les langues nous montrait leur petite diversité (plus de 5 sur l’ensemble des données), celle-ci se réduit drastiquement lorsqu’il s’agit de publications dans une revue. Les articles sont en anglais principalement, puis en français. Il n’y en a qu’un en portugais.
 
 On peut penser que HAL est davantage populaire dans la recherche francophone et anglophone. Tout en sachant que HAL ne permet pas de faire ces segmentations facilement et de manière pratique. En effet, il y a beaucoup d’erreurs de catégorisation. Des ressources en français se retrouvaient dans la partie anglaise et inversement.
 
 Il a fallut corriger ces erreurs manuellement.
 
-### 6. Les mots récurrents dans les titres de revus SHS (maj)
+### 6. Les mots récurrents dans les titres de revus SHS
 
-Nous allons créer un nuage de mots basé sur les titres des publications pour visualiser les termes les plus fréquents. Les mots "Alzheimer", "maladie" et "disease" sont exclus pour l'analyse.
+En approfondissant cet aspect linguistique, nous avons généré 2 nuages de mots à partir des termes utilisés dans les titres des publications. 
+
+Il a été décidé de séparer les titres anglais de ceux français pour pouvoir comparer les 2. En excluant les mots “Alzheimer”, “maladie” et “disease”, ces deux graphiques nous montrent les termes les plus fréquents.
+
 
 ```{r, include=FALSE}
 library(wordcloud) 
@@ -901,7 +910,10 @@ library(gridExtra)
 
 **Les publications françaises**
 
-Après avoir créé un corpus pour analyser le texte, nous mettons les caractères en minuscules et enlevons les nombres, les stopwords, les trois mois basiques et les espaces vides.
+Pour obtenir ce résultat lisible et interprétable, un nettoyage était nécessaire pour enlever les nombres, la ponctuation, les stopwords (les “mots vides” comme les articles, conjonctions, etc...). On remarque qu’il reste toutefois certains mots qui ne sont pas toujours pertinents : “quand”, “chez”.
+
+Ce nettoyage des mots est assez fastidieux et demande une intervention en partie manuelle.
+
 
 ```{r, include=TRUE, warning=FALSE}
 revues_shs_alzheimer_fr <- revues_shs_alzheimer %>% filter(language_s == "fr")
@@ -917,7 +929,13 @@ nuage_corpus_clean_fr<-tm_map(nuage_corpus_clean_fr,removePunctuation)
 nuage_corpus_clean_fr<-tm_map(nuage_corpus_clean_fr,stripWhitespace)
 ```
 
-Le mot 'personnes' est le plus couramment utilisé dans les titres des publications françaises. Cependant, étant donné que ce mot est neutre, il est préférable de faire référence aux mots en violet les plus utilisés en deuxième place, tels que 'clinique', 'cognitive', 'mémoire', etc. Il existe également des mots anglais tels que 'mild' et 'care', mais c'est parce que les auteurs ont directement utilisé ces termes anglais dans les titres en français.
+Le mot 'personnes' est le plus couramment utilisé dans les titres des publications françaises. Cependant, étant donné que ce mot est neutre, il est préférable de faire référence aux mots en violet les plus utilisés en deuxième place, tels que 'cognitive' et  'mémoire', etc.
+
+Dans le nuage de mot français, on remarque que le terme “mild” est toujours présent. En effet, les anglicismes dans les titres français n’étaient pas détectés et apparaissent donc dans notre nuage de mots français. Il est pertinent de les garder puisqu’ils sont utilisés dans des titres français.  
+
+D’autres mots anglais peuvent apparaître malgré le filtrage de la langue, dû au fait que certains auteurs mettent leur titre en français et en anglais.
+
+Dans ce cas, il est nécessaire d’avoir recourt à un nettoyage manuel, parfois au cas par cas.
 
 *Exemple : "Conscience des troubles dans la maladie d’Alzheimer et le mild cognitive impairment"*
 
@@ -954,25 +972,13 @@ grid.text("Les mots-clés anglais les plus utilisés", x = 0.5, y = 0.98,
           gp = gpar(fontsize = 15, fontface = "bold"))
 ```
 
-En résumé, en approfondissant cet aspect linguistique, on a généré 2 nuages de mots à partir des termes utilisés dans les titres des publications.
-
-Il a été décidé de séparer les titres anglais de ceux français pour pouvoir comparer les 2. En excluant les mots “Alzheimer”, “maladie” et “disease”, ces deux graphiques nous montrent les termes les plus fréquents.
-
-Pour obtenir ce résultat lisible et interprétable, un nettoyage était nécessaire pour enlever les nombres, la ponctuation, les stopwords (les “mots vides” comme les articles, conjonctions, etc...). On remarque qu’il reste toutefois certains mots qui ne sont pas toujours pertinents : “quand”, “chez”.
-
-Ce nettoyage des mots est assez fastidieux et demande une intervention en partie manuelle.
-
-Dans le nuage de mot français, on remarque que le terme “mild” est toujours présent. Pendant nos analyses, on avait remarqué que les anglicismes dans les titres français n’étaient pas détectés et apparaissent donc dans notre nuage de mots français. Il est pertinent de les garder puisqu’ils sont utilisés en français.
-
-D’autres mots anglais pouvaient apparaître malgré le filtrage de la langue, dû au fait que certains auteurs mettent leur titre en français et en anglais.
-
-Dans ce cas, il est nécessaire d’avoir recourt à un nettoyage manuel, parfois au cas par cas.
-
 En comparant ces deux graphiques, on peut voir que du côté francophone, le terme “personnes” est au même niveau que “cognitive” et “memory”. Ceci peut montrer que la recherche francophone s’intéresse avant tout à l’individu ou aux personnes aidant les malades. Tandis que la recherche anglaise explore les phénomènes relatifs au cerveau.
 
-Les termes équivalents en français : “cognitive” et “mémoire” n’apparaissent qu’en 4ème position sur le nuage de mots. Avant cela, les mots “troubles” et “aidants” sont davantage récurrents. Puis, en rose, des mots comme “diagnostic”, “prise”, “clinique”, “éthique” laissent penser que la recherche francophone se concentre davantage sur l’accompagnement et la gestion des personnes atteintes de la maladie d’Alzheimer. Du côté anglophone, les termes qui ressortent sont relatifs à l’aspect concret de la maladie, ce qui se passe de manière technique et scientifique chez les personnes concernées par cette maladie.
+Les termes équivalents en français : “cognitive” et “mémoire” n’apparaissent qu’en 4ème position sur le nuage de mots. Avant cela, les mots “troubles” et “aidants” sont davantage récurrents. Puis, en rose, des mots comme “diagnostic”, “prise”, “clinique”, “éthique” laissent penser que la recherche francophone se concentre davantage sur l’accompagnement et la gestion des personnes atteintes de la maladie d’Alzheimer.  
 
-### 7. Les institutions les plus actives (maj)
+Du côté anglophone, les termes qui ressortent sont relatifs à l’aspect concret de la maladie, ce qui se passe de manière technique et scientifique chez les personnes concernées par cette maladie.
+
+### 7. Les institutions les plus actives
 
 Pour identifier les institutions les plus actives dans la publication d'articles dans le domaine des sciences humaines et sociales (SHS) concernant la maladie d'Alzheimer, nous allons analyser les données de nos revues.
 
@@ -985,7 +991,7 @@ revues_shs_alzheimer <- revues_shs_alzheimer %>%
 
 Cette ligne de code utilise la fonction **`filter`** pour exclure les lignes où la colonne **`journalPublisher_s`** a des valeurs **`NA`**. Cela nettoie le dataframe en retirant les observations avec des valeurs manquantes dans la colonne spécifiée.
 
-Nous allons maintenant sélectionner le top 10 des institutions de revue les plus actifs:
+Afin d’établir un graphique montrant les 10 institutions les plus actives sur HAL sur le sujet de l’Alzheimer, il faut compter le nombre d’occurrences.
 
 ```{r, include=FALSE}
 top_institutions <- revues_shs_alzheimer %>%
@@ -1011,7 +1017,9 @@ ggplot(top_institutions, aes(x = n, y = fct_reorder(journalPublisher_s, n))) +
   theme_minimal()
 ```
 
-L’institution la plus active sur le sujet montre deux fois plus de publications avec celle en deuxième position. Il s’agit d’une grande maison d’édition installée depuis plusieurs siècles. On peut imaginer que les financements sont plus conséquents que parmi d’autres institutions ce qui lui permet d’être très présente dans le domaine.
+
+L’institution la plus active sur le sujet montre deux fois plus de publications que celle en deuxième position. Il s’agit d’une grande maison d’édition installée depuis plusieurs siècles. On peut imaginer que les financements sont plus conséquents que parmi d’autres institutions ce qui lui permet d’être très présente dans le domaine.
+
 
 # Conclusion
 
