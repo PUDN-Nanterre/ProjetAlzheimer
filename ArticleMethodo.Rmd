@@ -11,9 +11,8 @@ output:
     df_print: paged
   pdf_document: default
 ---
-* **M2 Information Communication, Données et Société
-Université Paris Nanterre**
 
+-   **M2 Information Communication, Données et Société Université Paris Nanterre**
 
 # Introduction
 
@@ -53,14 +52,43 @@ L’API nous permet donc de mettre à jour cette base de données et de récolte
 
 **Comment utiliser l’API de HAL ?**
 
-⇒ Lien vers la méthodo faite par Abir Gabriel\
-<https://gitlab.huma-num.fr/bchauvel/biblioalzheimer/-/blob/main/1_Extraction/FicheMethode_requeteHAL.Rmd?ref_type=heads>
+Il existe deux méthodes d'exportation des résultats d'une requête dans HAL en vue de leur traitement dans le logiciel R :
+
+**a) La recherche sur l'interface de HAL :**
+
+1.  Accéder à HAL via "<https://hal.archives-ouvertes.fr/>".
+
+2.  Consulter la documentation pour comprendre la recherche simple et avancée.
+
+3.  Utiliser les opérateurs booléens pour combiner les termes de recherche.
+
+4.  Formuler la requête en respectant les règles d'espacement et de casse des opérateurs.
+
+5.  Exporter les résultats dans des formats tels que XML-TEI, BibTeX, EndNote, CSV, PDF, RTF.
+
+6.  Cocher les dépôts à exporter ou exporter tous les résultats.
+
+7.  Sélectionner le format de fichier souhaité dans l'option "Actions".
+
+8.  Utiliser "Export avancé" pour choisir et réorganiser les champs.
+
+9.  Prévisualiser ou télécharger l'export.
+
+10. Filtrer les résultats si la requête dépasse 1000 résultats pour éviter une exportation partielle.
+
+**b) L'interrogation de l'API de HAL**
+
+Dans cette méthode, tous les paramètres de la requête sont précisés dans l'URL, notamment la valeur recherchée, le format du fichier de sortie, et les champs souhaités dans le fichier de sortie.
+
+La documentation de HAL, disponible à l'adresse "<https://api.archives-ouvertes.fr/docs/search>", explique comment faire une requête via l'API de HAL et comment récupérer les résultats dans un fichier de sortie.
+
+Interroger l'API de HAL en spécifiant tous les paramètres nécessaires dans l'URL offre une manière flexible de récupérer les données selon les critères de recherche spécifiés.
 
 **Extraction des données**
 
 Pour mener à bien notre analyse, nous commençons par extraire des données pertinentes à partir de l'API HAL. Ce dernier est une ressource centralisée regroupant des publications scientifiques en libre accès.
 
-Nous utilisons les requêtes suivantes pour obtenir les informations nécessaires :
+Pour obtenir les informations nécessaires, nous utilisons les requêtes suivantes pour interroger l'API HAL. Nous sélectionnons spécifiquement les champs souhaités de l'API dans nos requêtes :
 
 ```{r}
 
@@ -99,7 +127,7 @@ Le succès d'une analyse de données en R dépend souvent de l'utilisation des l
 
 -   **Skimr :** Génère des statistiques descriptives rapides pour l'ensemble du jeu de données, offrant un **aperçu rapide des variables et de leur distribution.**
 
-#### d) Librairies de manipulation et visualisation des données**
+#### d) Librairies de manipulation et visualisation des données\*\*
 
 -   **Tidyverse :** Collection de librairies (ggplot2, dplyr, tidyr, etc.) pour **le nettoyage, la manipulation et la visualisation des données**. Adoptez une approche cohérente et "propre" de l'analyse des données.
 
@@ -113,12 +141,11 @@ Le succès d'une analyse de données en R dépend souvent de l'utilisation des l
 
 -   **RColorBrewer et Viridis :** Fournissent des **palettes de couleurs** pour les visualisations graphiques, améliorant la lisibilité et l'esthétique des graphiques.
 
-#### e) Librairie de prétraitement du texte**
+#### e) Librairie de prétraitement du texte\*\*
 
 -   **TM (Text Mining) et SnowballC :** Utilisées pour le prétraitement du texte, notamment pour la création d'un corpus et le **nettoyage des données textuelles.**
 
     En garantissant que nous avons installé et chargé ces librairies au début de notre projet, nous nous assurons d'avoir toutes les fonctionnalités nécessaires pour effectuer une analyse complète.
-
 
 ```{r, include=FALSE}
 # Chargement des librairies nécessaires
@@ -136,7 +163,6 @@ library(wordcloud)   # Nuage de mots
 library(wordcloud2)  # Nuage de mots interactif
 library(textcat) #  Classification automatique de texte 
 ```
-
 
 # Nettoyage
 
@@ -188,14 +214,14 @@ var_label(dataset_alzheimer) <- list(
   fr_abstract_s = "Résumé en français")
 ```
 
-Des caractères ont été rajoutées à la fin de certains mots, après le séparateur  
-- '_i' : interger (entier)  
-- '_s', '_st' : string (chaîne de caractères)  
-- '_bool' : boolean (booléen)
+Des caractères ont été rajoutées à la fin de certains mots, après le séparateur\
+- '\_i' : interger (entier)\
+- '\_s', '\_st' : string (chaîne de caractères)\
+- '\_bool' : boolean (booléen)
 
 ### 2. Étiquetage des modalités
 
-#### **Étiquetage des types de documents** 
+#### **Étiquetage des types de documents**
 
 De la même manière, pour rendre les modalités plus explicites et compréhensibles, nous attribuons des libellés plus descriptifs pour les types de documents.
 
@@ -232,8 +258,11 @@ val_labels(dataset_alzheimer$language_s) <- c(
   "Ukrainien" = "uk")
 ```
 
-#### **Étiquetage des domaines**  
-Pour les domaines, nous leur attribuons des étiquettes et nous les agrégeons pour créer des catégories plus larges.
+#### **Étiquetage des domaines**
+
+L'étiquetage des domaines dans ce contexte consiste à regrouper les domaines spécifiques en catégories plus larges afin de simplifier l'analyse et la compréhension des données. Cela permet de gérer et interpréter plus facilement une diversité de domaines scientifiques dans un ensemble de données. En utilisant des étiquettes, nous simplifions l'arborescence des domaines dans HAL, ce qui réduit la complexité des analyses et des visualisations tout en préservant les informations essentielles sur les disciplines académiques des articles.
+
+Nous allons maintenant attribuer à nos domaines des étiquettes et nous les agrégeons pour créer des catégories plus larges.
 
 #### a) Agrégation des données liées aux domaines
 
@@ -273,7 +302,7 @@ val_labels(dataset_alzheimer$domaine_gpe) <- c(
   "Statistiques [stat]" = "stat")
 ```
 
-Les données et leur configuration sont sauvegardées dans le fichier "AlzheimerHAL.Rda" qui sera utilisé pour les analyses.
+Les données recodées sont sauvegardées dans le fichier "AlzheimerHAL.Rda" qui sera utilisé pour les analyses.
 
 ```{r, include=TRUE}
 save(dataset_alzheimer, file = "AlzheimerHAL.Rda")
@@ -287,19 +316,21 @@ Pour préparer les datasets que nous allons analyser et étudier, nous allons pa
 
 Dans cette étape, nous procéderons à la préparation du dataset général pour faire des visualisations sur les tendances générales.
 
--    [**Étape 2:**]{.underline} Préparation d’un dataset spécialisé pour les revues
+-   [**Étape 2:**]{.underline} Préparation d’un dataset spécialisé pour les revues
 
 Dans cette étape, nous créerons un sub-dataset spécifique qui se concentre exclusivement sur les publications de type “revues”. Cela permettra une analyse plus approfondie et ciblée sur ce sous-ensemble de données, facilitant ainsi l’extraction d’informations spécifiques liées aux revues.
 
-
 -   [Étape 3]{.underline} : Enrichissement manuelle des données liées aux types de revues (cette étape viendra dans les analyses, car nous allons seulement enrichir le top20 des revues)
-
 
 #### Étape 1 : Préparation d’un dataset général
 
 A partir du dataset initial, nous allons créer un sous-ensemble de données que nous allons appeler dataset_shs_alzheimer.
 
 Pour certaines de nos analyses, nous nous intéressons à l’ensemble des données afin de visualiser des tendances générales. Cependant, ces recherchent portent sur le domaine des Sciences Humaines et Sociales (SHS). Grâce à notre nettoyage précédent, nous pouvons chercher et sélectionner uniquement les sources catégorisées comme SHS ou “SSH” (en anglais) dans la variable de domaine.
+
+Il convient de souligner que la classification des SHS ne se limite pas à une seule variable "domaine", et que leur présence ne garantit pas nécessairement qu'elles soient le domaine principal de la notice. En effet, explorer l'intersection des SHS avec d'autres domaines revêt une importance particulière pour notre analyse.
+
+C'est pourquoi nous nous appuierons sur la colonne "domain_s", qui renseigne sur le domaine secondaire en plus de la colonne "primaryDomain_s" :
 
 ```{r, include=TRUE}
 
@@ -318,15 +349,25 @@ Nous allons donc agréger nos données liées aux types de publications.
 
 Les principales modifications incluent :
 
--   Regrouper "ISSUE" avec "ART" dans la catégorie "Article dans une revue".  
--   Regrouper "PROCEEDINGS" avec "COMM" dans la catégorie "Communication dans un congrès".  
--   Regrouper "HDR" avec "THESE".  
--   Regrouper "UNDEFINED" avec d'autres catégories d'"Autre publication scientifique".  
+-   Regrouper "ISSUE" avec "ART" dans la catégorie "Article dans une revue".\
+-   Regrouper "PROCEEDINGS" avec "COMM" dans la catégorie "Communication dans un congrès".\
+-   Regrouper "HDR" avec "THESE".\
+-   Regrouper "UNDEFINED" avec d'autres catégories d'"Autre publication scientifique".\
 -   Regrouper "COUV" avec "Ouvrages".
+
+Il est crucial d'expliquer nos regroupements :
+
+-   Nous avons regroupé les types "ART" et "ISSUE" ensemble. "ART" désigne un article publié dans une revue, tandis que "ISSUE" fait référence à un numéro spécial de revue. Nous avons pris cette décision afin de rassembler tous les documents relevant du domaine des revues et ainsi constituer par la suite un sous-corpus spécifique dédié à ce type de publication.
+
+-   Les "PROCEEDINGS" sont généralement les actes d'une conférence, incluant les articles, les présentations, et autres contributions. Étant donné que les "PROCEEDINGS" sont une forme courante de communication dans les congrès, il est logique de les regrouper avec les "COMM" (Communications dans un congrès).
+
+-   Les "HDR" (Habilitation à Diriger des Recherches) sont des diplômes universitaires. Ils sont similaires aux thèses dans le sens où ils représentent une étape avancée dans la carrière académique d'un chercheur.
+
+-   Les "COUV" (Chapitre d'ouvrage) sont des parties intégrantes d'un ouvrage plus vaste, souvent publiés individuellement dans des anthologies ou des compilations. Étant donné leur lien étroit avec les ouvrages plus larges, les regrouper avec les "Ouvrages" permet une meilleure organisation.
 
 ```{r, include=TRUE}
 dataset_shs_alzheimer <- dataset_shs_alzheimer %>%
-  mutate(docType_s = case_when(
+  mutate(type_publication = case_when(
     docType_s %in% c("ART", "ISSUE") ~ "Article dans une revue",
     docType_s %in% c("BLOG") ~ "Article de blog scientifique",
     docType_s %in% c("COMM", "PROCEEDINGS") ~ "Communication dans un congrès",
@@ -340,36 +381,49 @@ dataset_shs_alzheimer <- dataset_shs_alzheimer %>%
     TRUE ~ as.character(docType_s)  
   ))
 
-```
 
+```
 
 #### Étape 2 : Préparation d’un dataset spécialisé pour les revues
 
-**REVUES**  
-L’API nous donnant toutes les informations des colonnes sélectionnées, nous avons des contenus qui ne nous intéresse pas pour notre recherche. Afin de se concentrer seulement sur les informations relatives aux revues SHS, nous créons un sous dataset.
+**REVUES**\
+
+L’API nous fournit toutes les informations des colonnes sélectionnées, cependant, certaines données ne sont pas pertinentes pour notre recherche. Afin de nous concentrer uniquement sur les informations relatives aux revues SHS, nous créons un sous-ensemble de données.
 
 Grâce à notre agrégation précédente, nous avons toutes les données des articles de revues réunies.
 
 ```{r, include=TRUE}
-unique_doctype <- unique(dataset_shs_alzheimer$docType_s) 
+unique_doctype <- unique(dataset_shs_alzheimer$type_publication) 
 print(unique_doctype)
 ```
 
-Nous allons tout d'abord filtrer le jeu de données shs pour inclure uniquement les lignes où docType_s est "Article dans une revue" et où la colonne journalTitle_s contient les mots "Revue", "revue", "review" ou "Review" car il se peut que quelques revues ne soient pas indiquées comme étant des revues dans le type du document (undefined)
+Nous allons d'abord filtrer le jeu de données SHS pour inclure uniquement les lignes où le type de publication est "Article dans une revue" et où la colonne journalTitle_s contient les mots "Revue" ou "revue".
+
+Notons qu'on aurait pu inclure le mot "review" en anglais dans notre recherche, mais cela représente un risque, car le terme "review" peut également désigner des recensions critiques d'ouvrages.
+
+Il est également important de noter que les lignes marquées comme "UNDEFINED" correspondent à des documents où la valeur de la colonne journalTitle_s n'est pas renseignée. Par précaution, nous avons inclus cette condition pour couvrir les cas futurs où les lignes pourraient également contenir le mot "revue" dans la colonne journalTitle_s.
+
+Ce qui serait également intéressant à faire pour ne manquer aucun document de revues qui est marqué comme "UNDEFINED", et dans le cas où la variable journalTitle_s est fournie, serait d'examiner manuellement les titres pour déterminer s'ils correspondent à des revues académiques. Bien que cela puisse être fastidieux, c'est une méthode précise pour identifier les revues.
 
 ```{r, include=TRUE}
 revues_shs_alzheimer <- dataset_shs_alzheimer %>%
   filter(
-    docType_s %in% c("Article dans une revue") |
-      str_detect(tolower(journalTitle_s), "revue|review")
+    type_publication %in% c("Article dans une revue") |
+      str_detect(tolower(journalTitle_s), "revue")
   )
 ```
 
-Nous avons 394 publications de revues.
+Le nombre de publications de revues :
+
+```{r, include=TRUE}
+nrow(revues_shs_alzheimer)
+```
 
 **LANGUES**
 
-Les publications sont répertoriées dans différentes langues selon la langue du texte détectée. Cependant, de nombreuses erreurs apparaissent. Pour pallier ces confusions et pouvoir établir une répartition plus juste des contenus, nous devons comparer si la détection de la langue correspond à ce que nous indique la colonne de la langue. Si non, nous nettoyons à la main. Nous allons uniquement effectuer le nettoyage de la langue ici, car notre analyse linguistique est spécifiquement axée sur les revues.
+Les publications sont répertoriées dans différentes langues selon leur saisie sur HAL. La langue est généralement déclarée lors du dépôt de la publication. Cependant, de nombreuses erreurs de saisie peuvent exister. Afin d'établir une répartition plus précise des contenus, nous allons tenter de détecter automatiquement la langue, puis vérifier si la langue saisie correspond à celle détectée automatiquement. Dans le cas où les langues ne correspondent pas, nous procéderons à un nettoyage manuel.
+
+Cette opération de nettoyage de la langue sera effectuée uniquement sur notre sous-corpus de revues, car notre analyse linguistique est spécifiquement axée sur les revues.
 
 Pour nettoyer nos données de langue, nous allons tout d'abord les afficher pour avoir une vue sur l'existant :
 
@@ -383,10 +437,10 @@ print(language_counts)
 
 ```
 
-- *TEXTCAT*  
-Pour nettoyer notre colonne de langue, nous allons utiliser la librarie textcat. Cette librairie basée sur des modèles NLP pré-entrainés permet la détection automatique de la langue d'un texte. Il s'agit plus précisemment d'un N_gramm de la base de donnés pour 26 langues basé sur le corpus miltilingue de l'initiative Corpus Européen. Pour plus d'informations, visitez : (<https://cran.r-project.org/web/packages/textcat/textcat.pdf>)
+-   *TEXTCAT*\
+    Pour nettoyer notre colonne de langue, nous allons utiliser la librarie textcat. Cette librairie basée sur des modèles NLP pré-entrainés permet la détection automatique de la langue d'un texte. Il s'agit plus précisemment d'un N_gramm de la base de donnés pour 26 langues basé sur le corpus miltilingue de l'initiative Corpus Européen. Pour plus d'informations, visitez : (<https://cran.r-project.org/web/packages/textcat/textcat.pdf>)
 
-Notre approche consiste à détecter la langue du document à partir du titre, puis à la comparer avec la langue déjà saisie sur HAL (dans la colonne "language_s"). Nous procéderons ensuite à une vérification manuelle des données incohérentes, c'est-à-dire lorsque le résultat de la détection diffère de la langue enregistrée sur HAL. Cette vérification sera effectuée en consultant la publication en ligne pour assurer la précision des données.
+En termes plus clairs, notre approche consiste à détecter la langue du document à partir du titre, puis à la comparer avec la langue déjà saisie sur HAL (dans la colonne "language_s"). Nous procéderons ensuite à une vérification manuelle des données incohérentes, c'est-à-dire lorsque le résultat de la détection diffère de la langue enregistrée sur HAL. Cette vérification sera effectuée en consultant la publication en ligne pour assurer la précision des données.
 
 ```{r, include=TRUE}
 
@@ -445,15 +499,19 @@ revues_shs_alzheimer <- revues_shs_alzheimer %>%
 
 ```
 
-Nous rencontrons un obstacle pour les publications incluant  
+Avec cette librairie et son fonctionnement, nous rencontrons un obstacle pour les publications incluant :
 
-- un titre en 2 langues différentes (ex: titre français mais aussi écrit en agnalis à la suite)
-- un titre qui contient des mots de langue étrangère au reste du titre (ex : le terme “care” utilisé dans un titre français)
+-   un titre en 2 langues différentes (ex: titre français mais aussi écrit en agnalis à la suite)
+-   un titre qui contient des mots de langue étrangère au reste du titre (ex : le terme “care” utilisé dans un titre français)
 
-**ÉDITEURS**  
-Enfin, un nettoyage est nécéssaire sur les éditeurs. En effet, l’éditeur “Elsevier”  apparaît sous 2 formes : “Elsevier” et “Elsevier Masson”. Nous les regroupons sous un même terme. Nous allons donc mettre à jour la colonne ‘journalPublisher_s’
+On observe également l'absence de correction de la langue saisie dans le sens français vers anglais, ce qui peut s'expliquer par plusieurs facteurs. Il est possible qu'il y ait eu des erreurs de manipulation lors du dépôt des publications sur HAL, notamment des oublis ou des sélections incorrectes de la langue. Il est également envisageable que HAL attribue une langue par défaut en l'absence de saisie, en se basant sur les autres données renseignées.
 
-Pour ce faire, nous allons utiliser la fonction **`mutate`** du package **`dplyr`** pour effectuer une transformation sur la colonne **`journalPublisher_s`** du dataframe **`revues_shs_alzheimer`**. La transformation est réalisée avec la fonction **`if_else`**, qui permet de remplacer les occurrences de "Elsevier" dans la colonne **`journalPublisher_s`** par "Elsevier Masson".
+C'est pour cette raison que nous avons choisi de vérifier manueloctylement pour avoir des données bien propres.
+
+**ÉDITEURS**\
+Enfin, un nettoyage est nécéssaire sur les éditeurs. En effet, l’éditeur “Elsevier” apparaît sous 2 formes : “Elsevier” et “Elsevier Masson”. Nous les regroupons sous un même terme. Nous allons donc mettre à jour la colonne ‘journalPublisher_s’
+
+Pour ce faire, la transformation est réalisée avec la fonction **`if_else`**, qui permet de remplacer les occurrences de "Elsevier" dans la colonne **`journalPublisher_s`** par "Elsevier Masson".
 
 En d'autres termes, chaque fois que la valeur de la colonne **`journalPublisher_s`** est "Elsevier", elle est mise à jour avec la valeur "Elsevier Masson".
 
@@ -503,7 +561,6 @@ freq(dataset_alzheimer$primaryDomain_s, sort = "dec", valid = FALSE, total = TRU
   knitr::kable(caption = "Domaines primaires détaillés (les 20 plus fréquents)")
 ```
 
-
 # Analyses et Interprétations des résultats
 
 ### 1. Les tendances annuelles de publications
@@ -516,9 +573,9 @@ Nous allons tout d'abord calculer le nombre de publications pour chaque année e
 
 # Résumé des tendances de publication par année et type de document, en excluant les types "UNDEFINED".
 tendances_publication <- dataset_shs_alzheimer %>%
-  group_by(publicationDateY_i, docType_s) %>%
+  group_by(publicationDateY_i, type_publication) %>%
   summarise(count = n()) %>%
-  filter(!(docType_s %in% c("UNDEFINED")))
+  filter(!(type_publication %in% c("UNDEFINED")))
 view(tendances_publication)
 
 ```
@@ -528,7 +585,7 @@ Visualisation des données avec la palette de couleurs Dark2 :
 ```{r, include=TRUE}
 
 # Création d'un graphique à barres empilées montrant les tendances des publications SHS sur la maladie d'Alzheimer depuis 1998.
-ggplot(tendances_publication, aes(x = publicationDateY_i, y = count, fill = docType_s)) +
+ggplot(tendances_publication, aes(x = publicationDateY_i, y = count, fill = type_publication)) +
   geom_bar(stat = "identity", position = "stack", width = 0.7, color = "black") +  # Barres empilées
   scale_fill_brewer(palette = "Dark2") +  # Palette de couleurs
   labs(
@@ -545,6 +602,8 @@ ggplot(tendances_publication, aes(x = publicationDateY_i, y = count, fill = docT
 
 La première publication accessible sur HAL portant sur notre sujet est un ouvrage qui a été publié en 1998. Cette date, antérieure à celle de la création de HAL, montre que la référence de publication indiquée peut aller au-delà des limites de la plateforme. HAL peut donc être un espace d’archivage de recherches scientifiques pour les ressources de plus de 25 ans.
 
+*La première publication en 1998 : "Les processus d’inhibition dans le vieillissement: Aspects méthodologiques et diagnostiques" par Denis Brouillet, Arielle Syssau Vaccarella, Isabelle Gimet (un chapitre d'un livre titré "Actualités 1998 sur la maladie d'Alzheimer et les syndromes apparentés").*
+
 Entre 2001 et 2006, il y a peu de publications. Mais il y a systématiquement un ou plusieurs articles publiés (à l’exception de 2004).
 
 Il y a un pic de publications en 2012. Cette date marque la fin du Plan Alzheimer 2008-2012, projet politique qui tente d’améliorer la recherche française sur la maladie d’Alzheimer. On peut penser que de nombreuses recherches se sont intéressées, à cette période, à la maladie. Les résultats ont ensuite été publiés sur HAL.
@@ -555,15 +614,15 @@ Les articles de revues sont globalement le type de document qui y est le plus d�
 
 ### 2. La répartition des publications SHS
 
-Pour visualiser toutes ces publications sous un autre angle, il est possible de regrouper ces données pour avoir une image résumant la répartition totale de ces publications en SHS sans l’aspect temporel.  
+Pour visualiser toutes ces publications sous un autre angle, il est possible de regrouper ces données pour avoir une image résumant la répartition totale de ces publications en SHS sans l’aspect temporel.
 
-Avant de créer le camembert, nous allons tout d'abord créer un résumé des comptes et pourcentages pour chaque catégorie docType_s :
+Avant de créer le camembert, nous allons tout d'abord créer un résumé des comptes et pourcentages pour chaque catégorie type_publication:
 
 ```{r, include=TRUE}
 
 # Calcul du nombre d'occurrences de chaque type de document et calcule le pourcentage par rapport au total.
 count_data <- dataset_shs_alzheimer %>%
-  count(docType_s) %>%  # Calcul du nombre d'occurrences par type de document
+  count(type_publication) %>%  # Calcul du nombre d'occurrences par type de document
   mutate(percentage = prop.table(n) * 100)  # Ajout d'une colonne avec le pourcentage par rapport au total
 
 ```
@@ -573,12 +632,12 @@ Maintenant, nous allons créer un camembert avec des étiquettes de pourcentage 
 ```{r, include=TRUE}
 
 # Utilisation de ggplot2 et ggrepel pour générer un graphique polarisé avec des étiquettes représentant les pourcentages.
-ggplot(count_data, aes(x = "", y = n, fill = docType_s)) +
+ggplot(count_data, aes(x = "", y = n, fill = type_publication)) +
   geom_bar(width = 1, stat = "identity", color = "white") +  
 
   geom_label_repel(aes(
     label = scales::percent(percentage / 100),
-    fill = docType_s
+    fill = type_publication
   ),
   position = position_stack(vjust = 0.5),
   box.padding = 0.5,
@@ -805,13 +864,13 @@ ggplot(top_10, aes(x = reorder(aut, -frequentation), y = frequentation, fill = D
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-**Disciplines**  
+**Disciplines**
 
 La psychologie représente la discipline principale de la moitié de ces auteurs. Cela semble assez vraisemblable puisque nous avons remarqué précédemment que les revues en rapport avec la psychologie sont très présentes dans nos recherches. Cette discipline se place avant la gérontologie (l’étude du vieillissement), ce qui semble assez logique étant donné la maladie dont il est question.
 
 Il y a tout de même un aspect philosophique à travers un auteur ce qui montre la diversité, voire la complémentarité, des angles d’approche pour étudier la maladie d’Alzheimer.
 
-**Auteurs**  
+**Auteurs**\
 Mohamad El Haj, dans le domaine de psychologie, est l'auteur le plus actif avec 38 publications sur la maladie d'alzheimer. Entre les dix auteurs, cinq personnes contribuent au domaine de psychologie, quatre au gérontologie et un à la philosophie.
 
 Nous filtrons les cinq meilleurs auteurs et montrons les revues dans lesquelles ils ont écrit leurs recherches.
@@ -883,8 +942,7 @@ ggplot(langue_pays_freq, aes(x = fct_reorder(language_s, n), y = n)) +  # Utilis
 
 ```
 
-À partir des textes des publications au sein des revues portant sur la thématique de l’Alzheimer, on peut distinguer les différentes langues.
-Alors que le nettoyage réalisé plus haut sur les langues nous montrait leur petite diversité (plus de 5 sur l’ensemble des données), celle-ci se réduit drastiquement lorsqu’il s’agit de publications dans une revue. Les articles sont en anglais principalement, puis en français. Il n’y en a qu’un en portugais.
+À partir des textes des publications au sein des revues portant sur la thématique de l’Alzheimer, on peut distinguer les différentes langues. Alors que le nettoyage réalisé plus haut sur les langues nous montrait leur petite diversité (plus de 5 sur l’ensemble des données), celle-ci se réduit drastiquement lorsqu’il s’agit de publications dans une revue. Les articles sont en anglais principalement, puis en français. Il n’y en a qu’un en portugais.
 
 On peut penser que HAL est davantage populaire dans la recherche francophone et anglophone. Tout en sachant que HAL ne permet pas de faire ces segmentations facilement et de manière pratique. En effet, il y a beaucoup d’erreurs de catégorisation. Des ressources en français se retrouvaient dans la partie anglaise et inversement.
 
@@ -892,10 +950,9 @@ Il a fallut corriger ces erreurs manuellement.
 
 ### 6. Les mots récurrents dans les titres de revus SHS
 
-En approfondissant cet aspect linguistique, nous avons généré 2 nuages de mots à partir des termes utilisés dans les titres des publications. 
+En approfondissant cet aspect linguistique, nous avons généré 2 nuages de mots à partir des termes utilisés dans les titres des publications.
 
 Il a été décidé de séparer les titres anglais de ceux français pour pouvoir comparer les 2. En excluant les mots “Alzheimer”, “maladie” et “disease”, ces deux graphiques nous montrent les termes les plus fréquents.
-
 
 ```{r, include=FALSE}
 library(wordcloud) 
@@ -914,7 +971,6 @@ Pour obtenir ce résultat lisible et interprétable, un nettoyage était nécess
 
 Ce nettoyage des mots est assez fastidieux et demande une intervention en partie manuelle.
 
-
 ```{r, include=TRUE, warning=FALSE}
 revues_shs_alzheimer_fr <- revues_shs_alzheimer %>% filter(language_s == "fr")
 nuage_corpus_fr <- Corpus(VectorSource(revues_shs_alzheimer_fr$title_s))
@@ -929,9 +985,9 @@ nuage_corpus_clean_fr<-tm_map(nuage_corpus_clean_fr,removePunctuation)
 nuage_corpus_clean_fr<-tm_map(nuage_corpus_clean_fr,stripWhitespace)
 ```
 
-Le mot 'personnes' est le plus couramment utilisé dans les titres des publications françaises. Cependant, étant donné que ce mot est neutre, il est préférable de faire référence aux mots en violet les plus utilisés en deuxième place, tels que 'cognitive' et  'mémoire', etc.
+Le mot 'personnes' est le plus couramment utilisé dans les titres des publications françaises. Cependant, étant donné que ce mot est neutre, il est préférable de faire référence aux mots en violet les plus utilisés en deuxième place, tels que 'cognitive' et 'mémoire', etc.
 
-Dans le nuage de mot français, on remarque que le terme “mild” est toujours présent. En effet, les anglicismes dans les titres français n’étaient pas détectés et apparaissent donc dans notre nuage de mots français. Il est pertinent de les garder puisqu’ils sont utilisés dans des titres français.  
+Dans le nuage de mot français, on remarque que le terme “mild” est toujours présent. En effet, les anglicismes dans les titres français n’étaient pas détectés et apparaissent donc dans notre nuage de mots français. Il est pertinent de les garder puisqu’ils sont utilisés dans des titres français.
 
 D’autres mots anglais peuvent apparaître malgré le filtrage de la langue, dû au fait que certains auteurs mettent leur titre en français et en anglais.
 
@@ -974,9 +1030,9 @@ grid.text("Les mots-clés anglais les plus utilisés", x = 0.5, y = 0.98,
 
 En comparant ces deux graphiques, on peut voir que du côté francophone, le terme “personnes” est au même niveau que “cognitive” et “memory”. Ceci peut montrer que la recherche francophone s’intéresse avant tout à l’individu ou aux personnes aidant les malades. Tandis que la recherche anglaise explore les phénomènes relatifs au cerveau.
 
-Les termes équivalents en français : “cognitive” et “mémoire” n’apparaissent qu’en 4ème position sur le nuage de mots. Avant cela, les mots “troubles” et “aidants” sont davantage récurrents. Puis, en rose, des mots comme “diagnostic”, “prise”, “clinique”, “éthique” laissent penser que la recherche francophone se concentre davantage sur l’accompagnement et la gestion des personnes atteintes de la maladie d’Alzheimer.  
+Les termes équivalents en français : “cognitive” et “mémoire” n’apparaissent qu’en 4ème position sur le nuage de mots. Avant cela, les mots “troubles” et “aidants” sont davantage récurrents. Puis, en rose, des mots comme “diagnostic”, “prise”, “clinique”, “éthique” laissent penser que la recherche francophone se concentre davantage sur l’accompagnement et la gestion des personnes atteintes de la maladie d’Alzheimer.
 
-Du côté anglophone, les termes qui ressortent sont relatifs à l’aspect concret de la maladie, ce qui se passe de manière technique et scientifique chez les personnes concernées par cette maladie.
+Du côté de la recherche anglophone, les termes qui ressortent sont relatifs à l’aspect concret de la maladie, ce qui se passe de manière technique et scientifique chez les personnes concernées par cette maladie.
 
 ### 7. Les institutions les plus actives
 
@@ -1017,9 +1073,7 @@ ggplot(top_institutions, aes(x = n, y = fct_reorder(journalPublisher_s, n))) +
   theme_minimal()
 ```
 
-
 L’institution la plus active sur le sujet montre deux fois plus de publications que celle en deuxième position. Il s’agit d’une grande maison d’édition installée depuis plusieurs siècles. On peut imaginer que les financements sont plus conséquents que parmi d’autres institutions ce qui lui permet d’être très présente dans le domaine.
-
 
 # Conclusion
 
